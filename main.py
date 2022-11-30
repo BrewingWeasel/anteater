@@ -2,10 +2,12 @@
 
 import curses
 import time
+import ui.window
+import ui.color_picker
 
 
 class Drawing:
-    def __init__(self):
+    def __init__(self, frames=12, fps=12, project_name="animation"):
         # Initialize curses screen
         self.screen = curses.initscr()
 
@@ -22,9 +24,10 @@ class Drawing:
         curses.flushinp()
         curses.noecho()
 
-        # TODO: Make these options that can be changed
-        self.frames = 12
-        self.export_file = "animation.py"
+        self.frames = frames
+        self.fps = fps
+        self.project_name = project_name
+        self.export_file = f"{project_name}.py"
 
         self.cur_frame = 0
         self.playing = False
@@ -140,12 +143,11 @@ class Drawing:
         except IndexError:
             pass  # TODO: error system
 
-    def changecolor(self):
-        colorchar = self.screen.getkey()
-        try:
-            self.color = curses.color_pair(int(colorchar))
-        except ValueError:
-            pass  # TODO: error system
+    def change_color(self):
+        self.color = curses.color_pair(ui.color_picker.get_color(self.screen))
+        curses.init_pair(1, curses.COLOR_BLACK, -1)
+        curses.init_pair(2, curses.COLOR_RED, -1)
+        self.draw_frame()
 
     def clear(self):
         self.screen.clear()  # TODO: UI for confirming clear
@@ -154,16 +156,19 @@ class Drawing:
         for y in range(curses.LINES):
             self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
 
-    def changeframe(self):
-        self.screen.clear()
-        self.history = [[]]
-        self.recentlyadded = []
-        self.times_modified = 0
+    def draw_frame(self):
         for y, yval in enumerate(self.charlocations[self.cur_frame]):
             for x, xval in enumerate(yval):
                 new_char, new_color = xval
                 if new_char != " ":
                     self.screen.addstr(y, x, new_char, new_color)
+
+    def changeframe(self):
+        self.screen.clear()
+        self.history = [[]]
+        self.recentlyadded = []
+        self.times_modified = 0
+        self.draw_frame()
 
     def get_differences(self, otherframe=None):
         if otherframe is None:
@@ -191,7 +196,7 @@ class Drawing:
         # Print each frame
         for frame in range(self.frames - 1):
             self.display_top()
-            time.sleep(0.3)
+            time.sleep(1 / self.fps)
             self.cur_frame += 1
             for coords, char_info in self.get_differences():
                 y, x = coords
@@ -207,7 +212,7 @@ class Drawing:
             self.cur_frame = 0
             for frame in range(self.frames - 1):
                 f.write(f"# frame {frame}\n")
-                f.write("time.sleep(0.2)\n")
+                f.write(f"time.sleep({1 / self.fps})\n")
                 self.cur_frame += 1
                 for coords, char_info in self.get_differences():
                     y, x = coords
@@ -217,7 +222,7 @@ class Drawing:
                     )
                     self.screen.addstr(y, x, new_char, new_char_color)
 
-    def quit(self):
+    def quit_drawing(self):
         self.running = False
 
     def get_keys(self):
@@ -230,9 +235,9 @@ class Drawing:
             99: self.change_char,  # On 'c' pressed
             122: self.undo,  # On 'z' pressed
             90: self.redo,  # On 'shift' and 'z' pressed
-            115: self.changecolor,  # On 's' pressed
+            115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
-            27: self.quit,  # On 'escape' pressed
+            27: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
             260: self.last_frame,  # On the left arrow pressed
@@ -244,10 +249,7 @@ class Drawing:
             try:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
-                with open(
-                    "keypressed.txt", "w"
-                ) as f:  # add the key to logs for debugging purposes
-                    f.write(str(key))
+                pass
         else:
             pass
 
@@ -268,7 +270,21 @@ class Drawing:
 
 
 def main(stdscr):
-    drawing = Drawing()
+    win = ui.window.Window(stdscr)
+    win.gen_window()
+    win.gen_title("new animation")
+    win.gen_widgets(
+        [
+            (ui.widgets.TextInput, "file name", "animation.py"),
+            (ui.widgets.NumberInput, "total frames", "24"),
+            (ui.widgets.NumberInput, "frames per second", "12"),
+        ]
+    )
+    file_info = win.get_contents()
+
+    drawing = Drawing(
+        project_name=file_info[0], frames=int(file_info[1]), fps=int(file_info[2])
+    )
 
     while drawing.running:
         drawing.display_top()

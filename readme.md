@@ -2,9 +2,11 @@
 
 A tool for drawing and creating animations for the terminal...in the terminal. 
 
-Drawing and animation are both fully working with colors. However the experience isn't great due to the lack of things like custom brushes and floodfill.
+Currently the UI is the main focus, but in the future I hope to add features like floodfill and brushes (with brush size)
 
-Keybinds:
+Commits are of course welcome.
+
+Current Keybinds (subject to change):
 - right arrow: next frame
 - left arrow: last frame
 - d: enter draw mode (lets you actually draw stuff)
