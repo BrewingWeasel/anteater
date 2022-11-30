@@ -4,9 +4,7 @@ A tool for drawing and creating animations for the terminal...in the terminal.
 
 Currently the UI is the main focus, but in the future I hope to add features like floodfill and brushes (with brush size)
 
-Commits are of course welcome.
-
-Current Keybinds (subject to change):
+# Current Keybinds (subject to change):
 - right arrow: next frame
 - left arrow: last frame
 - d: enter draw mode (lets you actually draw stuff)
@@ -16,4 +14,7 @@ Current Keybinds (subject to change):
 - z: undo
 - Shift + z (Z): redo
 - c: change the current character you're drawing with
-- s: chnage the current color you're drawing with
+- s: change the current color you're drawing with
+
+# Contributing
+Any sort of help is very welcome :)
