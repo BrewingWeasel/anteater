@@ -22,6 +22,8 @@ def get_color(screen):
                 win.cur_widget += 1
         if isinstance(response, int):
             if response < len(win.widgets) and response >= 0:
+                win.widgets[win.cur_widget].active = False
+                win.widgets[win.cur_widget].draw()
                 win.cur_widget = response
         if response == "finish":
             finished = True

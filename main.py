@@ -1,7 +1,8 @@
 # USE export TERM=xterm-1003
-
+import os
 import curses
 import time
+import pickle
 import ui.window
 import ui.color_picker
 
@@ -17,7 +18,6 @@ class Drawing:
         for i in range(0, curses.COLORS):
             curses.init_pair(i + 1, i, -1)
 
-        # Set up other curses settings
         self.screen.keypad(1)
         curses.curs_set(0)
         curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
@@ -28,12 +28,13 @@ class Drawing:
         self.fps = fps
         self.project_name = project_name
         self.export_file = f"{project_name}.py"
-
+        
         self.cur_frame = 0
         self.playing = False
         self.running = True
         self.draw = True
         self.erase = False
+        self.fill = False
         self.modify = False
         self.times_modified = 0
         self.char = "a"
@@ -89,6 +90,8 @@ class Drawing:
                 self.add_char(y, x, char_to_add=" ")
         if button & curses.BUTTON1_PRESSED:
             self.modify = True
+            if self.fill:
+                self.draw_fill(y, x)
         if button & curses.BUTTON1_CLICKED:
             if not self.modify:
                 if self.draw:
@@ -103,12 +106,20 @@ class Drawing:
         self.erase = False
         self.draw = True
         self.modify = False
+        self.fill = False
 
     def toggle_erase(self):
         self.draw = False
         self.erase = True
         self.modify = False
+        self.fill = False
 
+    def toggle_fill(self):
+        self.draw = False
+        self.erase = False
+        self.modify = False
+        self.fill = True
+    
     def toggle_modify(self):
         if self.modify:
             self.unmodify()
@@ -130,8 +141,8 @@ class Drawing:
                     self.charlocations[self.cur_frame][y][x] = (oldchar, oldcolor)
                 self.times_modified -= 1
         except IndexError:
-            pass  # TODO: error system
-
+            # TODO: error system
+            pass
     def redo(self):
         try:
             if len(self.history[self.times_modified]):
@@ -155,13 +166,48 @@ class Drawing:
         self.charlocations[self.cur_frame] = []
         for y in range(curses.LINES):
             self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
-
+    
+    def _fill(self, y, x, original, replace):
+        if(y > 0 and x > 0):
+            if((y, x) not in self.checked):
+                try:
+                    if(self.charlocations[self.cur_frame][y][x] == original):
+                        self.charlocations[self.cur_frame][y][x] = replace
+                        self.history[self.times_modified].append(
+                            (y, x, original[0], replace[0], original[1], replace[1])
+                        )
+                        
+                        self.checked.append((y, x))
+                        
+                        self._fill(y + 1, x, original, replace)
+                        self._fill(y - 1, x, original, replace)
+                        self._fill(y, x + 1, original, replace)
+                        self._fill(y, x - 1, original, replace)
+                    else:
+                        self.checked.append((y, x))
+                except:
+                    self.checked.append((y, x))
+           
+            
+                    
+    def draw_fill(self, y, x):
+        self.checked = []
+        original = self.charlocations[self.cur_frame][y][x]
+        replace = (self.char, self.color)
+        self._fill(y, x, original, replace)
+        self.draw_frame()
+        
+        self.checked = []
+        
     def draw_frame(self):
         for y, yval in enumerate(self.charlocations[self.cur_frame]):
             for x, xval in enumerate(yval):
                 new_char, new_color = xval
                 if new_char != " ":
-                    self.screen.addstr(y, x, new_char, new_color)
+                    try:
+                        self.screen.addstr(y, x, new_char, new_color)
+                    except curses.error:
+                        pass
 
     def changeframe(self):
         self.screen.clear()
@@ -222,9 +268,33 @@ class Drawing:
                     )
                     self.screen.addstr(y, x, new_char, new_char_color)
 
+    def save(self):
+        win = ui.window.Window(self.screen)
+        win.gen_window()
+        win.gen_title("Save file")        
+        win.gen_widgets([(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/{self.project_name}")])
+        location, _ = win.get_contents()
+        os.makedirs(os.path.dirname(location), exist_ok=True)
+        with open(location, 'wb') as f:
+            pickle.dump(self.charlocations, f)
+        win.delete()
+        self.draw_frame()
+
+    def load(self):
+        win = ui.window.Window(self.screen)
+        win.gen_window()
+        win.gen_title("Load file")
+        win.gen_widgets([(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/")])
+        location, _ = win.get_contents()
+        with open(location, 'rb') as f:
+            self.charlocations = pickle.load(f)
+        win.delete()
+        self.draw_frame()
+    
     def quit_drawing(self):
         self.running = False
 
+    
     def get_keys(self):
 
         keybinds = {
@@ -237,9 +307,12 @@ class Drawing:
             90: self.redo,  # On 'shift' and 'z' pressed
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
+            102: self.toggle_fill, # On 'f' pressed
             27: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
+            83: self.save, # On 's' pressed
+            105: self.load, # On 'i' pressed
             260: self.last_frame,  # On the left arrow pressed
             261: self.next_frame,  # On the right arrow pressed
         }
@@ -259,13 +332,14 @@ class Drawing:
             mode = "erase"
         elif self.draw:
             mode = "draw"
-
+        elif self.fill:
+            mode = "fill"
         if mode in ["erase", "draw"] and self.modify:
             mode += " (m)"
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
         )
 
 
@@ -275,7 +349,7 @@ def main(stdscr):
     win.gen_title("new animation")
     win.gen_widgets(
         [
-            (ui.widgets.TextInput, "file name", "animation.py"),
+            (ui.widgets.TextInput, "file name", "animation"),
             (ui.widgets.NumberInput, "total frames", "24"),
             (ui.widgets.NumberInput, "frames per second", "12"),
         ]

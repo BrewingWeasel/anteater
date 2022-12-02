@@ -9,11 +9,13 @@ class Widget:
         self.prompt = prompt
         self.input_prompt = input_prompt  # TODO: make name better
         self.answer = ""
-
+        self.possible_inputs = ["up", "down"]
+        
+        
         self.active = False
 
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_BLUE)
+        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.draw()
 
     def draw(self):
@@ -42,7 +44,7 @@ class Widget:
         while not finished_input:
             self.draw()
             response = self._input_response()
-            if response in ["up", "down", "finish"]:
+            if response in self.possible_inputs:
                 return response
 
 
@@ -88,6 +90,7 @@ class NumberInput(TextInput):
 class AcceptInput(Widget):
     def __init__(self, screen, y, x, prompt):
         super().__init__(screen, y, x, prompt, input_prompt="")
+        self.possible_inputs.append("finish")
 
     def _input_response(self):
         response = super()._input_response()
@@ -99,6 +102,10 @@ class AcceptInput(Widget):
 
 
 class ListItem(AcceptInput):
+    def __init__(self, screen, y, x, prompt):
+        super().__init__(screen, y, x, prompt)
+        self.possible_inputs = self.possible_inputs + [i for i in range(0, 10)]
+
     def _input_response(self):
         response = super()._input_response()
         if response.isnumeric():
