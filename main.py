@@ -1,4 +1,4 @@
-#USE export TERM=xterm-1003
+# USE export TERM=xterm-1003
 import os
 import sys
 import curses
@@ -29,7 +29,7 @@ class Drawing:
         self.fps = fps
         self.project_name = project_name
         self.export_file = f"{project_name}.py"
-        
+
         self.cur_frame = 0
         self.playing = False
         self.running = True
@@ -57,24 +57,27 @@ class Drawing:
     def add_char(self, y, x, char_to_add="cur_char"):
         if char_to_add == "cur_char":
             char_to_add = self.char
-        self.screen.addstr(y, x, char_to_add, self.color)
+        try:
+            self.screen.addstr(y, x, char_to_add, self.color)
 
-        oldchar = self.charlocations[self.cur_frame][y][x][0]
-        oldcolor = self.charlocations[self.cur_frame][y][x][1]
+            oldchar = self.charlocations[self.cur_frame][y][x][0]
+            oldcolor = self.charlocations[self.cur_frame][y][x][1]
 
-        if (y, x) in self.recentlyadded:
-            index = self.recentlyadded.index((y, x))
+            if (y, x) in self.recentlyadded:
+                index = self.recentlyadded.index((y, x))
 
-            self.recentlyadded.pop(index)
-            oldinfo = self.history[self.times_modified].pop(index)
-            oldchar = oldinfo[2]
-            oldcolor = oldinfo[4]
+                self.recentlyadded.pop(index)
+                oldinfo = self.history[self.times_modified].pop(index)
+                oldchar = oldinfo[2]
+                oldcolor = oldinfo[4]
 
-        self.history[self.times_modified].append(
-            (y, x, oldchar, char_to_add, oldcolor, self.color)
-        )
-        self.recentlyadded.append((y, x))
-        self.charlocations[self.cur_frame][y][x] = (char_to_add, self.color)
+            self.history[self.times_modified].append(
+                (y, x, oldchar, char_to_add, oldcolor, self.color)
+            )
+            self.recentlyadded.append((y, x))
+            self.charlocations[self.cur_frame][y][x] = (char_to_add, self.color)
+        except curses.error:
+            pass  # TODO: Error system
 
     def unmodify(self):
         self.modify = False
@@ -120,7 +123,7 @@ class Drawing:
         self.erase = False
         self.modify = False
         self.fill = True
-    
+
     def toggle_modify(self):
         if self.modify:
             self.unmodify()
@@ -138,19 +141,26 @@ class Drawing:
             if len(self.history[self.times_modified - 1]):
                 for i in self.history[self.times_modified - 1]:
                     y, x, oldchar, _newchar, oldcolor, _newcolor = i
-                    self.screen.addstr(y, x, oldchar, oldcolor)
-                    self.charlocations[self.cur_frame][y][x] = (oldchar, oldcolor)
+                    try:
+                        self.screen.addstr(y, x, oldchar, oldcolor)
+                        self.charlocations[self.cur_frame][y][x] = (oldchar, oldcolor)
+                    except curses.error:
+                        pass
                 self.times_modified -= 1
         except IndexError:
             # TODO: error system
             pass
+
     def redo(self):
         try:
             if len(self.history[self.times_modified]):
                 for i in self.history[self.times_modified]:
                     y, x, _oldchar, newchar, _oldcolor, newcolor = i
-                    self.screen.addstr(y, x, newchar, newcolor)
-                    self.charlocations[self.cur_frame][y][x] = (newchar, newcolor)
+                    try:
+                        self.screen.addstr(y, x, newchar, newcolor)
+                        self.charlocations[self.cur_frame][y][x] = (newchar, newcolor)
+                    except curses.error:
+                        pass
                 self.times_modified += 1
         except IndexError:
             pass  # TODO: error system
@@ -167,35 +177,37 @@ class Drawing:
         self.charlocations[self.cur_frame] = []
         for y in range(curses.LINES):
             self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
-    
+
     def _fill(self, y, x, original, replace):
-        if(y > 0 and x > 0 and y < len(self.charlocations[self.cur_frame]) and x < len(self.charlocations[self.cur_frame][y])):
-            if((y, x) not in self.checked):
-                if(self.charlocations[self.cur_frame][y][x] == original):
+        if (
+            y > 0
+            and x > 0
+            and y < len(self.charlocations[self.cur_frame])
+            and x < len(self.charlocations[self.cur_frame][y])
+        ):
+            if (y, x) not in self.checked:
+                if self.charlocations[self.cur_frame][y][x] == original:
                     self.charlocations[self.cur_frame][y][x] = replace
                     self.history[self.times_modified].append(
                         (y, x, original[0], replace[0], original[1], replace[1])
-                    )      
+                    )
                     self.checked.append((y, x))
-                    
+
                     self._fill(y + 1, x, original, replace)
                     self._fill(y - 1, x, original, replace)
                     self._fill(y, x + 1, original, replace)
                     self._fill(y, x - 1, original, replace)
                 else:
                     self.checked.append((y, x))
-        
-            
-                    
+
     def draw_fill(self, y, x):
         self.checked = []
         original = self.charlocations[self.cur_frame][y][x]
         replace = (self.char, self.color)
         self._fill(y, x, original, replace)
         self.draw_frame()
-        
         self.checked = []
-        
+
     def draw_frame(self):
         for y, yval in enumerate(self.charlocations[self.cur_frame]):
             for x, xval in enumerate(yval):
@@ -268,11 +280,19 @@ class Drawing:
     def save(self):
         win = ui.window.Window(self.screen)
         win.gen_window()
-        win.gen_title("Save file")        
-        win.gen_widgets([(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/{self.project_name}")])
+        win.gen_title("Save file")
+        win.gen_widgets(
+            [
+                (
+                    ui.widgets.TextInput,
+                    "File location",
+                    f"~/.local/share/anteater/{self.project_name}",
+                )
+            ]
+        )
         location, _ = win.get_contents()
         os.makedirs(os.path.dirname(location), exist_ok=True)
-        with open(location, 'wb') as f:
+        with open(location, "wb") as f:
             pickle.dump(self.charlocations, f)
         win.delete()
         self.draw_frame()
@@ -281,17 +301,18 @@ class Drawing:
         win = ui.window.Window(self.screen)
         win.gen_window()
         win.gen_title("Load file")
-        win.gen_widgets([(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/")])
+        win.gen_widgets(
+            [(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/")]
+        )
         location, _ = win.get_contents()
-        with open(location, 'rb') as f:
+        with open(location, "rb") as f:
             self.charlocations = pickle.load(f)
         win.delete()
         self.draw_frame()
-    
+
     def quit_drawing(self):
         self.running = False
 
-    
     def get_keys(self):
 
         keybinds = {
@@ -304,12 +325,12 @@ class Drawing:
             90: self.redo,  # On 'shift' and 'z' pressed
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
-            102: self.toggle_fill, # On 'f' pressed
+            102: self.toggle_fill,  # On 'f' pressed
             27: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
-            83: self.save, # On 's' pressed
-            105: self.load, # On 'i' pressed
+            83: self.save,  # On 's' pressed
+            105: self.load,  # On 'i' pressed
             260: self.last_frame,  # On the left arrow pressed
             261: self.next_frame,  # On the right arrow pressed
         }
@@ -341,8 +362,8 @@ class Drawing:
 
 
 def main(stdscr):
-    sys.setrecursionlimit(10000) # Used for fill
-    
+    sys.setrecursionlimit(10000)  # Used for fill
+
     win = ui.window.Window(stdscr)
     win.gen_window()
     win.gen_title("new animation")
