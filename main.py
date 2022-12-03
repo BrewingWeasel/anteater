@@ -1,5 +1,6 @@
-# USE export TERM=xterm-1003
+#USE export TERM=xterm-1003
 import os
+import sys
 import curses
 import time
 import pickle
@@ -168,26 +169,22 @@ class Drawing:
             self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
     
     def _fill(self, y, x, original, replace):
-        if(y > 0 and x > 0):
+        if(y > 0 and x > 0 and y < len(self.charlocations[self.cur_frame]) and x < len(self.charlocations[self.cur_frame][y])):
             if((y, x) not in self.checked):
-                try:
-                    if(self.charlocations[self.cur_frame][y][x] == original):
-                        self.charlocations[self.cur_frame][y][x] = replace
-                        self.history[self.times_modified].append(
-                            (y, x, original[0], replace[0], original[1], replace[1])
-                        )
-                        
-                        self.checked.append((y, x))
-                        
-                        self._fill(y + 1, x, original, replace)
-                        self._fill(y - 1, x, original, replace)
-                        self._fill(y, x + 1, original, replace)
-                        self._fill(y, x - 1, original, replace)
-                    else:
-                        self.checked.append((y, x))
-                except:
+                if(self.charlocations[self.cur_frame][y][x] == original):
+                    self.charlocations[self.cur_frame][y][x] = replace
+                    self.history[self.times_modified].append(
+                        (y, x, original[0], replace[0], original[1], replace[1])
+                    )      
                     self.checked.append((y, x))
-           
+                    
+                    self._fill(y + 1, x, original, replace)
+                    self._fill(y - 1, x, original, replace)
+                    self._fill(y, x + 1, original, replace)
+                    self._fill(y, x - 1, original, replace)
+                else:
+                    self.checked.append((y, x))
+        
             
                     
     def draw_fill(self, y, x):
@@ -344,6 +341,8 @@ class Drawing:
 
 
 def main(stdscr):
+    sys.setrecursionlimit(10000) # Used for fill
+    
     win = ui.window.Window(stdscr)
     win.gen_window()
     win.gen_title("new animation")
