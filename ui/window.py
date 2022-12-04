@@ -22,11 +22,28 @@ class Window:
     def gen_title(self, title):
         xpos = round(
             curses.COLS / 2 - len(title) / 2
-        )  # TODO: maybe find a better soloution
+        )
         self.screen.addstr(
             self.ymargin + 1, xpos, title, curses.color_pair(1) | curses.A_UNDERLINE
         )
 
+    def gen_text(self, text, ypos="center", xpos="center", style=curses.A_NORMAL):
+        if(ypos == "center"):
+            ypos = round(curses.LINES / 2)
+        else:
+            ypos = self.ymargin + ypos
+        
+        if(xpos == "center"):
+            xpos = round(
+                curses.COLS / 2 - len(text) / 2
+            )
+        else:
+            xpos = self.yxargin + xpos
+                       
+        self.screen.addstr(
+            ypos, xpos, text, curses.color_pair(1) | style
+        )
+    
     def gen_widgets(self, widget_list, confirm=True):
         for i, widget in enumerate(widget_list):
             widget_type, name, answer = widget

@@ -6,7 +6,7 @@ import time
 import pickle
 import ui.window
 import ui.color_picker
-
+import ui.confirmation
 
 class Drawing:
     def __init__(self, frames=12, fps=12, project_name="animation"):
@@ -24,6 +24,9 @@ class Drawing:
         curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
         curses.flushinp()
         curses.noecho()
+
+        usrdir = os.path.expanduser("~")
+        self.save_path = os.path.join(usrdir, ".local", "share", "anteater")
 
         self.frames = frames
         self.fps = fps
@@ -58,24 +61,25 @@ class Drawing:
         if char_to_add == "cur_char":
             char_to_add = self.char
         try:
-            self.screen.addstr(y, x, char_to_add, self.color)
+            if(y > 0):
+                self.screen.addstr(y, x, char_to_add, self.color)
 
-            oldchar = self.charlocations[self.cur_frame][y][x][0]
-            oldcolor = self.charlocations[self.cur_frame][y][x][1]
+                oldchar = self.charlocations[self.cur_frame][y][x][0]
+                oldcolor = self.charlocations[self.cur_frame][y][x][1]
 
-            if (y, x) in self.recentlyadded:
-                index = self.recentlyadded.index((y, x))
+                if (y, x) in self.recentlyadded:
+                    index = self.recentlyadded.index((y, x))
 
-                self.recentlyadded.pop(index)
-                oldinfo = self.history[self.times_modified].pop(index)
-                oldchar = oldinfo[2]
-                oldcolor = oldinfo[4]
+                    self.recentlyadded.pop(index)
+                    oldinfo = self.history[self.times_modified].pop(index)
+                    oldchar = oldinfo[2]
+                    oldcolor = oldinfo[4]
 
-            self.history[self.times_modified].append(
-                (y, x, oldchar, char_to_add, oldcolor, self.color)
-            )
-            self.recentlyadded.append((y, x))
-            self.charlocations[self.cur_frame][y][x] = (char_to_add, self.color)
+                self.history[self.times_modified].append(
+                    (y, x, oldchar, char_to_add, oldcolor, self.color)
+                )
+                self.recentlyadded.append((y, x))
+                self.charlocations[self.cur_frame][y][x] = (char_to_add, self.color)
         except curses.error:
             pass  # TODO: Error system
 
@@ -132,7 +136,16 @@ class Drawing:
             self.erase = False
 
     def change_char(self):
+        win = ui.window.Window(self.screen, margins=(40, 15))
+        win.gen_window()
+        win.gen_title("Change key")
+        win.gen_text("Press key to change to")
         self.char = self.screen.getkey()
+        while self.char.startswith("KEY"):
+            self.char = self.screen.getkey()
+        win.delete()
+        self.draw_frame()
+        self.reset_colors()
 
     def undo(self):
         if self.modify:
@@ -165,18 +178,25 @@ class Drawing:
         except IndexError:
             pass  # TODO: error system
 
-    def change_color(self):
-        self.color = curses.color_pair(ui.color_picker.get_color(self.screen))
+    def reset_colors(self):
         curses.init_pair(1, curses.COLOR_BLACK, -1)
         curses.init_pair(2, curses.COLOR_RED, -1)
+
+    def change_color(self):
+        self.color = curses.color_pair(ui.color_picker.get_color(self.screen))
         self.draw_frame()
+        self.reset_colors()
 
     def clear(self):
-        self.screen.clear()  # TODO: UI for confirming clear
+        if(ui.confirmation.confirm(self.screen, "Clear the screen?")):
+            self.screen.clear()
 
-        self.charlocations[self.cur_frame] = []
-        for y in range(curses.LINES):
-            self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
+            self.charlocations[self.cur_frame] = []
+            for y in range(curses.LINES):
+                self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
+        else:
+            self.draw_frame()
+        self.reset_colors()
 
     def _fill(self, y, x, original, replace):
         if (
@@ -262,6 +282,19 @@ class Drawing:
         return f"\033[0;3{curses.pair_content(curses.pair_number(color))[0]}m\033[{y};{x}H{char}"
 
     def export(self):
+        win = ui.window.Window(self.screen)
+        win.gen_window()
+        win.gen_title("Save file")
+        win.gen_widgets(
+            [
+                (
+                    ui.widgets.TextInput,
+                    "File location",
+                    f"{self.export_file}",
+                )
+            ]
+        )
+        self.export_file, _ = win.get_contents()
         with open(self.export_file, "w") as f:
             f.write("import time\nprint('\\n' * 100)\n")
             self.cur_frame = 0
@@ -276,7 +309,8 @@ class Drawing:
                         f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
                     )
                     self.screen.addstr(y, x, new_char, new_char_color)
-
+        win.delete()
+        
     def save(self):
         win = ui.window.Window(self.screen)
         win.gen_window()
@@ -286,7 +320,7 @@ class Drawing:
                 (
                     ui.widgets.TextInput,
                     "File location",
-                    f"~/.local/share/anteater/{self.project_name}",
+                    f"{self.save_path}/{self.project_name}",
                 )
             ]
         )
@@ -295,15 +329,12 @@ class Drawing:
         with open(location, "wb") as f:
             pickle.dump(self.charlocations, f)
         win.delete()
-        self.draw_frame()
 
     def load(self):
         win = ui.window.Window(self.screen)
         win.gen_window()
         win.gen_title("Load file")
-        win.gen_widgets(
-            [(ui.widgets.TextInput, "File location", f"~/.local/share/anteater/")]
-        )
+        win.gen_widgets([(ui.widgets.TextInput, "File location", self.save_path)])
         location, _ = win.get_contents()
         with open(location, "rb") as f:
             self.charlocations = pickle.load(f)
@@ -357,7 +388,7 @@ class Drawing:
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame}",
         )
 
 

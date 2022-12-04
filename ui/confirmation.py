@@ -1,17 +1,12 @@
-import ui.widgets
 import ui.window
+import ui.widgets
 
-COLORS = ["white", "black", "red", "green", "yellow", "blue", "magenta", "aqua"]
-
-
-def get_color(screen):
-    win = ui.window.Window(screen, margins=(50, 13))
+def confirm(screen, message): # TODO: add a default parameter
+    win = ui.window.Window(screen, margins=(68, 17))
     win.gen_window()
-    win.gen_title("Pick your color")
-    win.gen_widgets(
-        [(ui.widgets.ListItem, color, "") for color in COLORS], confirm=False
-    )
-
+    win.gen_title(message)
+    win.gen_widgets([(ui.widgets.ListItem, "Cancel", ""), (ui.widgets.ListItem, "Confirm", "")], confirm=False)
+   
     finished = False
     while not finished:
         response = win.widgets[win.cur_widget].get_input()
@@ -28,4 +23,4 @@ def get_color(screen):
         if response == "finish":
             finished = True
             win.delete()
-            return win.cur_widget
+            return win.cur_widget == 1
