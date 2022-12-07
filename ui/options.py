@@ -1,5 +1,5 @@
 def get_option(win):
-    while not finished:
+    while True:
         response = win.widgets[win.cur_widget].get_input()
         if response == "up":
             win.cur_widget -= 1 if win.cur_widget > 0 else 0

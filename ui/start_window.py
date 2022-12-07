@@ -12,6 +12,7 @@ def start_window(screen):
     win.gen_title("Pick your project")
     widgets = [(ui.widgets.ListItem, "New project", "")]
     if os.path.isdir(save_path):
+        widgets += [(str, "_______________", ""), (str, "Projects", ""), (str, "_______________", "")]
         for project in os.listdir(save_path):
             widgets.append((ui.widgets.ListItem, project, ""))
     win.gen_widgets(widgets, confirm=False)

@@ -35,7 +35,8 @@ class Widget:
             finished_input = True
             self.draw()
             return "down"
-        elif char == "KEY_ESCAPE":
+        elif char == "^[":
+            # TODO: make this actually work
             return "escape"
         else:
             return char

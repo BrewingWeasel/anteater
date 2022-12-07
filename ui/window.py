@@ -38,7 +38,7 @@ class Window:
                 curses.COLS / 2 - len(text) / 2
             )
         else:
-            xpos = self.yxargin + xpos
+            xpos = self.xmargin + xpos
                        
         self.screen.addstr(
             ypos, xpos, text, curses.color_pair(1) | style
@@ -47,11 +47,14 @@ class Window:
     def gen_widgets(self, widget_list, confirm=True):
         for i, widget in enumerate(widget_list):
             widget_type, name, answer = widget
-            self.widgets.append(
-                widget_type(self.screen, self.ymargin + 3 + i, self.xmargin + 5, name)
-            )
-            self.widgets[i].answer = answer  # TODO: make this an input
-            self.widgets[i].draw()
+            if(widget_type == str):
+                self.gen_text(name, ypos=3 + i, xpos=5)
+            else:
+                self.widgets.append(
+                    widget_type(self.screen, self.ymargin + 3 + i, self.xmargin + 5, name)
+                )
+                self.widgets[-1].answer = answer
+                self.widgets[-1].draw()
         if confirm:
             self.widgets.append(
                 widgets.AcceptInput(
