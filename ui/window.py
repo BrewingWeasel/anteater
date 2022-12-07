@@ -63,8 +63,7 @@ class Window:
             )
 
     def get_contents(self):
-        finished = False
-        while not finished:
+        while True:
             response = self.widgets[self.cur_widget].get_input()
             if response == "up":
                 self.cur_widget -= 1 if self.cur_widget > 0 else 0
@@ -72,8 +71,10 @@ class Window:
                 if self.cur_widget < len(self.widgets) - 1:
                     self.cur_widget += 1
             if response == "finish":
-                finished = True
                 return [i.answer for i in self.widgets]
+            if response == "cancel":
+                return
+                
 
     def delete(self):
         for y in range(self.ymargin, curses.LINES - self.ymargin):

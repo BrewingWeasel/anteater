@@ -9,7 +9,7 @@ class Widget:
         self.prompt = prompt
         self.input_prompt = input_prompt  # TODO: make name better
         self.answer = ""
-        self.possible_inputs = ["up", "down"]
+        self.possible_inputs = ["up", "down", "escape"]
         
         
         self.active = False
@@ -35,6 +35,8 @@ class Widget:
             finished_input = True
             self.draw()
             return "down"
+        elif char == "KEY_ESCAPE":
+            return "escape"
         else:
             return char
 
@@ -51,7 +53,7 @@ class Widget:
 class TextInput(Widget):
     def _input_response(self):
         response = super()._input_response()
-        if response in ["up", "down"]:
+        if response in self.possible_inputs:
             return response
         if response == "KEY_BACKSPACE":
             self.answer = self.answer[:-1]
@@ -94,7 +96,7 @@ class AcceptInput(Widget):
 
     def _input_response(self):
         response = super()._input_response()
-        if response in ["up", "down"]:
+        if response in self.possible_inputs:
             return response
         if response == "\n":
             return "finish"

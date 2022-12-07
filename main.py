@@ -7,6 +7,8 @@ import pickle
 import ui.window
 import ui.color_picker
 import ui.confirmation
+import ui.start_window
+
 
 class Drawing:
     def __init__(self, frames=12, fps=12, project_name="animation"):
@@ -330,15 +332,16 @@ class Drawing:
             pickle.dump(self.charlocations, f)
         win.delete()
 
-    def load(self):
-        win = ui.window.Window(self.screen)
-        win.gen_window()
-        win.gen_title("Load file")
-        win.gen_widgets([(ui.widgets.TextInput, "File location", self.save_path)])
-        location, _ = win.get_contents()
+    def load(self, location=''):
+        if location == '':
+            win = ui.window.Window(self.screen)
+            win.gen_window()
+            win.gen_title("Load file")
+            win.gen_widgets([(ui.widgets.TextInput, "File location", self.save_path)])
+            location, _ = win.get_contents()
+            win.delete()
         with open(location, "rb") as f:
-            self.charlocations = pickle.load(f)
-        win.delete()
+            self.charlocations = pickle.load(f)       
         self.draw_frame()
 
     def quit_drawing(self):
@@ -395,22 +398,30 @@ class Drawing:
 def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
 
-    win = ui.window.Window(stdscr)
-    win.gen_window()
-    win.gen_title("new animation")
-    win.gen_widgets(
-        [
-            (ui.widgets.TextInput, "file name", "animation"),
-            (ui.widgets.NumberInput, "total frames", "24"),
-            (ui.widgets.NumberInput, "frames per second", "12"),
-        ]
-    )
-    file_info = win.get_contents()
+    project = ui.start_window.start_window(stdscr)
+    
+    if project == "new":
+        win = ui.window.Window(stdscr)
+        
+        win.gen_window()
+        win.gen_title("new animation")
+        win.gen_widgets(
+            [
+                (ui.widgets.TextInput, "file name", "animation"),
+                (ui.widgets.NumberInput, "total frames", "24"),
+                (ui.widgets.NumberInput, "frames per second", "12"),
+            ]
+        )
+        file_info = win.get_contents()
 
-    drawing = Drawing(
-        project_name=file_info[0], frames=int(file_info[1]), fps=int(file_info[2])
-    )
+        drawing = Drawing(
+            project_name=file_info[0], frames=int(file_info[1]), fps=int(file_info[2])
+        )
 
+    else:
+        drawing = Drawing()
+        drawing.load(os.path.join(drawing.save_path, project))
+    
     while drawing.running:
         drawing.display_top()
         drawing.get_keys()
