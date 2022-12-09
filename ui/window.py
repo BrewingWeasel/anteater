@@ -20,38 +20,34 @@ class Window:
             )
 
     def gen_title(self, title):
-        xpos = round(
-            curses.COLS / 2 - len(title) / 2
-        )
+        xpos = round(curses.COLS / 2 - len(title) / 2)
         self.screen.addstr(
             self.ymargin + 1, xpos, title, curses.color_pair(1) | curses.A_UNDERLINE
         )
 
     def gen_text(self, text, ypos="center", xpos="center", style=curses.A_NORMAL):
-        if(ypos == "center"):
+        if ypos == "center":
             ypos = round(curses.LINES / 2)
         else:
             ypos = self.ymargin + ypos
-        
-        if(xpos == "center"):
-            xpos = round(
-                curses.COLS / 2 - len(text) / 2
-            )
+
+        if xpos == "center":
+            xpos = round(curses.COLS / 2 - len(text) / 2)
         else:
             xpos = self.xmargin + xpos
-                       
-        self.screen.addstr(
-            ypos, xpos, text, curses.color_pair(1) | style
-        )
-    
+
+        self.screen.addstr(ypos, xpos, text, curses.color_pair(1) | style)
+
     def gen_widgets(self, widget_list, confirm=True):
         for i, widget in enumerate(widget_list):
             widget_type, name, answer = widget
-            if(widget_type == str):
+            if widget_type == str:
                 self.gen_text(name, ypos=3 + i, xpos=5)
             else:
                 self.widgets.append(
-                    widget_type(self.screen, self.ymargin + 3 + i, self.xmargin + 5, name)
+                    widget_type(
+                        self.screen, self.ymargin + 3 + i, self.xmargin + 5, name
+                    )
                 )
                 self.widgets[-1].answer = answer
                 self.widgets[-1].draw()
@@ -77,7 +73,6 @@ class Window:
                 return [i.answer for i in self.widgets]
             if response == "cancel":
                 return
-                
 
     def delete(self):
         for y in range(self.ymargin, curses.LINES - self.ymargin):

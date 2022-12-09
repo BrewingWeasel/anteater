@@ -10,8 +10,7 @@ class Widget:
         self.input_prompt = input_prompt  # TODO: make name better
         self.answer = ""
         self.possible_inputs = ["up", "down", "escape"]
-        
-        
+
         self.active = False
 
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
