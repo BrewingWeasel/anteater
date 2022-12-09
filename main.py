@@ -399,6 +399,15 @@ class Drawing:
             for y, yval in enumerate(self.buffer):
                 for x, xval in enumerate(yval):
                     try:
+                        self.history[self.times_modified].append(
+                            (ypos + y, 
+                             xpos + x, 
+                             self.charlocations[self.cur_frame][ypos + y][xpos + x][0], 
+                             xval[0],
+                             self.charlocations[self.cur_frame][ypos + y][xpos + x][1],
+                             yval[1] 
+                            )
+                        )
                         self.charlocations[self.cur_frame][ypos + y][xpos + x] = xval
                     except IndexError:
                         pass
@@ -458,7 +467,7 @@ class Drawing:
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} selecting: {self.selecting}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
         )
 
 
