@@ -42,7 +42,11 @@ class Drawing:
         self.erase = False
         self.fill = False
         self.modify = False
+        self.selecting = False
+        self.init_coords = None
+        self.final_coords = None
         self.times_modified = 0
+        
         self.char = "a"
         self.color = curses.COLOR_WHITE
         self.mode = "none"
@@ -90,6 +94,7 @@ class Drawing:
         self.times_modified += 1
         self.history.append([])
         self.recentlyadded = []
+        self.draw_selection()
 
     def react_to_mouse(self):
         _, x, y, _, button = curses.getmouse()
@@ -102,7 +107,7 @@ class Drawing:
             self.modify = True
             if self.fill:
                 self.draw_fill(y, x)
-        if button & curses.BUTTON1_CLICKED:
+        elif button & curses.BUTTON1_CLICKED:
             if not self.modify:
                 if self.draw:
                     self.add_char(y, x)
@@ -111,6 +116,16 @@ class Drawing:
             self.unmodify()
         elif button & curses.BUTTON1_RELEASED:
             self.unmodify()
+        elif button & curses.BUTTON3_PRESSED:
+            if not self.selecting:
+                self.remove_selection()
+                print("lol")
+                self.init_coords = (y, x)
+            self.selecting = True
+        elif button & curses.BUTTON3_RELEASED or button & curses.BUTTON3_PRESSED & self.selecting:
+            self.selecting = False
+            self.final_coords = (y, x)
+            self.draw_selection()
 
     def toggle_draw(self):
         self.erase = False
@@ -189,7 +204,7 @@ class Drawing:
         self.draw_frame()
         self.reset_colors()
 
-    def clear(self):
+    def clear(self, force=False):
         if(ui.confirmation.confirm(self.screen, "Clear the screen?")):
             self.screen.clear()
 
@@ -239,12 +254,14 @@ class Drawing:
                         self.screen.addstr(y, x, new_char, new_color)
                     except curses.error:
                         pass
+        self.draw_selection()
 
     def changeframe(self):
         self.screen.clear()
         self.history = [[]]
         self.recentlyadded = []
         self.times_modified = 0
+        self.remove_selection()
         self.draw_frame()
 
     def get_differences(self, otherframe=None):
@@ -346,7 +363,53 @@ class Drawing:
 
     def quit_drawing(self):
         self.running = False
+    
+    def draw_selection(self):
+        if(self.init_coords is not None and self.final_coords is not None):
+            for y in range(self.init_coords[0], self.final_coords[0]):
+                # TODO: optimize
+                for x in range(self.init_coords[1], self.final_coords[1]):
+                    char, color = self.charlocations[self.cur_frame][y][x]
+                    self.screen.addstr(y, x, char, color | curses.A_REVERSE)
 
+    def remove_selection(self):
+        self.init_coords = None
+        self.final_coords = None
+        self.selecting = False
+        self.screen.clear()
+        self.draw_frame()
+
+    def copy(self):
+        if(self.init_coords and self.final_coords):
+            self.buffer = []
+            for y in range(self.init_coords[0], self.final_coords[0]):
+                xbuffer = []
+                for x in range(self.init_coords[1], self.final_coords[1]):
+                    xbuffer.append(self.charlocations[self.cur_frame][y][x])
+                    
+                self.buffer.append(xbuffer)
+    
+    def paste(self):
+        if(self.buffer != []):
+            key = self.screen.getch()
+            _, xpos, ypos, _, button = curses.getmouse()
+            while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED:
+                key = self.screen.getch()
+                _, xpos, ypos, _, button = curses.getmouse()
+            for y, yval in enumerate(self.buffer):
+                for x, xval in enumerate(yval):
+                    try:
+                        self.charlocations[self.cur_frame][ypos + y][xpos + x] = xval
+                    except IndexError:
+                        pass
+            self.draw_frame()
+            
+    def select_all(self):
+        self.selecting = False
+        self.init_coords = (1, 1)
+        self.final_coords = (curses.LINES - 1, curses.COLS - 1)
+        self.draw_selection()
+        
     def get_keys(self):
 
         keybinds = {
@@ -356,7 +419,7 @@ class Drawing:
             114: self.toggle_modify,  # On 'r' pressed
             99: self.change_char,  # On 'c' pressed
             122: self.undo,  # On 'z' pressed
-            90: self.redo,  # On 'shift' and 'z' pressed
+            90: self.redo,  # On 'Z' pressed
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
             102: self.toggle_fill,  # On 'f' pressed
@@ -367,6 +430,10 @@ class Drawing:
             105: self.load,  # On 'i' pressed
             260: self.last_frame,  # On the left arrow pressed
             261: self.next_frame,  # On the right arrow pressed
+            68: self.remove_selection, # On 'D' pressed
+            121: self.copy, # On 'y' pressed
+            112: self.paste, # On 'p' pressed
+            1: self.select_all # On Ctrl + 'a' pressed
         }
 
         if not self.playing:
@@ -374,7 +441,7 @@ class Drawing:
             try:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
-                pass
+                print(key)
         else:
             pass
 
@@ -391,7 +458,7 @@ class Drawing:
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} selecting: {self.selecting}",
         )
 
 
