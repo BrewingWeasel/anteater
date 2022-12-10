@@ -63,11 +63,18 @@ class Drawing:
 
         self.screen.clear()
 
+    def in_selection(self, y, x):
+        if self.final_coords is None:
+            return True
+        elif self.final_coords[0] > y >= self.init_coords[0] and self.final_coords[1] > x >= self.init_coords[1]:
+             return True
+        return False
+
     def add_char(self, y, x, char_to_add="cur_char"):
         if char_to_add == "cur_char":
             char_to_add = self.char
         try:
-            if y > 0:
+            if y > 0 and self.in_selection(y, x):
                 self.screen.addstr(y, x, char_to_add, self.color)
 
                 oldchar = self.charlocations[self.cur_frame][y][x][0]
@@ -239,7 +246,7 @@ class Drawing:
             and y < len(self.charlocations[self.cur_frame])
             and x < len(self.charlocations[self.cur_frame][y])
         ):
-            if (y, x) not in self.checked:
+            if (y, x) not in self.checked and self.in_selection(y, x):
                 if self.charlocations[self.cur_frame][y][x] == original:
                     self.charlocations[self.cur_frame][y][x] = replace
                     self.history[self.times_modified].append(
