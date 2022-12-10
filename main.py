@@ -46,7 +46,7 @@ class Drawing:
         self.init_coords = None
         self.final_coords = None
         self.times_modified = 0
-        
+
         self.char = "a"
         self.color = curses.COLOR_WHITE
         self.mode = "none"
@@ -67,7 +67,7 @@ class Drawing:
         if char_to_add == "cur_char":
             char_to_add = self.char
         try:
-            if(y > 0):
+            if y > 0:
                 self.screen.addstr(y, x, char_to_add, self.color)
 
                 oldchar = self.charlocations[self.cur_frame][y][x][0]
@@ -122,9 +122,24 @@ class Drawing:
                 print("lol")
                 self.init_coords = (y, x)
             self.selecting = True
-        elif button & curses.BUTTON3_RELEASED or button & curses.BUTTON3_PRESSED & self.selecting:
+        elif (
+            button & curses.BUTTON3_RELEASED
+            or button & curses.BUTTON3_PRESSED & self.selecting
+        ):
             self.selecting = False
             self.final_coords = (y, x)
+            # Make init coords be in the top left
+            if self.init_coords[0] > self.final_coords[0]:
+                self.final_coords, self.init_coords = (
+                    self.init_coords[0],
+                    self.final_coords[1],
+                ), (self.final_coords[0], self.init_coords[1])
+            if self.init_coords[1] > self.final_coords[1]:
+                self.final_coords, self.init_coords = (
+                    self.final_coords[0],
+                    self.init_coords[1],
+                ), (self.init_coords[0], self.final_coords[1])
+
             self.draw_selection()
 
     def toggle_draw(self):
@@ -205,12 +220,14 @@ class Drawing:
         self.reset_colors()
 
     def clear(self, force=False):
-        if(ui.confirmation.confirm(self.screen, "Clear the screen?")):
+        if ui.confirmation.confirm(self.screen, "Clear the screen?"):
             self.screen.clear()
 
             self.charlocations[self.cur_frame] = []
             for y in range(curses.LINES):
-                self.charlocations[self.cur_frame].append([(" ", self.color)] * curses.COLS)
+                self.charlocations[self.cur_frame].append(
+                    [(" ", self.color)] * curses.COLS
+                )
         else:
             self.draw_frame()
         self.reset_colors()
@@ -329,7 +346,7 @@ class Drawing:
                     )
                     self.screen.addstr(y, x, new_char, new_char_color)
         win.delete()
-        
+
     def save(self):
         win = ui.window.Window(self.screen)
         win.gen_window()
@@ -349,8 +366,8 @@ class Drawing:
             pickle.dump(self.charlocations, f)
         win.delete()
 
-    def load(self, location=''):
-        if location == '':
+    def load(self, location=""):
+        if location == "":
             win = ui.window.Window(self.screen)
             win.gen_window()
             win.gen_title("Load file")
@@ -358,14 +375,14 @@ class Drawing:
             location, _ = win.get_contents()
             win.delete()
         with open(location, "rb") as f:
-            self.charlocations = pickle.load(f)       
+            self.charlocations = pickle.load(f)
         self.draw_frame()
 
     def quit_drawing(self):
         self.running = False
-    
+
     def draw_selection(self):
-        if(self.init_coords is not None and self.final_coords is not None):
+        if self.init_coords is not None and self.final_coords is not None:
             for y in range(self.init_coords[0], self.final_coords[0]):
                 # TODO: optimize
                 for x in range(self.init_coords[1], self.final_coords[1]):
@@ -380,17 +397,17 @@ class Drawing:
         self.draw_frame()
 
     def copy(self):
-        if(self.init_coords and self.final_coords):
+        if self.init_coords and self.final_coords:
             self.buffer = []
             for y in range(self.init_coords[0], self.final_coords[0]):
                 xbuffer = []
                 for x in range(self.init_coords[1], self.final_coords[1]):
                     xbuffer.append(self.charlocations[self.cur_frame][y][x])
-                    
+
                 self.buffer.append(xbuffer)
-    
+
     def paste(self):
-        if(self.buffer != []):
+        if self.buffer != []:
             key = self.screen.getch()
             _, xpos, ypos, _, button = curses.getmouse()
             while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED:
@@ -400,25 +417,30 @@ class Drawing:
                 for x, xval in enumerate(yval):
                     try:
                         self.history[self.times_modified].append(
-                            (ypos + y, 
-                             xpos + x, 
-                             self.charlocations[self.cur_frame][ypos + y][xpos + x][0], 
-                             xval[0],
-                             self.charlocations[self.cur_frame][ypos + y][xpos + x][1],
-                             yval[1] 
+                            (
+                                ypos + y,
+                                xpos + x,
+                                self.charlocations[self.cur_frame][ypos + y][xpos + x][
+                                    0
+                                ],
+                                xval[0],
+                                self.charlocations[self.cur_frame][ypos + y][xpos + x][
+                                    1
+                                ],
+                                yval[1],
                             )
                         )
                         self.charlocations[self.cur_frame][ypos + y][xpos + x] = xval
                     except IndexError:
                         pass
             self.draw_frame()
-            
+
     def select_all(self):
         self.selecting = False
         self.init_coords = (1, 1)
         self.final_coords = (curses.LINES - 1, curses.COLS - 1)
         self.draw_selection()
-        
+
     def get_keys(self):
 
         keybinds = {
@@ -439,10 +461,10 @@ class Drawing:
             105: self.load,  # On 'i' pressed
             260: self.last_frame,  # On the left arrow pressed
             261: self.next_frame,  # On the right arrow pressed
-            68: self.remove_selection, # On 'D' pressed
-            121: self.copy, # On 'y' pressed
-            112: self.paste, # On 'p' pressed
-            1: self.select_all # On Ctrl + 'a' pressed
+            68: self.remove_selection,  # On 'D' pressed
+            121: self.copy,  # On 'y' pressed
+            112: self.paste,  # On 'p' pressed
+            1: self.select_all,  # On Ctrl + 'a' pressed
         }
 
         if not self.playing:
@@ -475,10 +497,10 @@ def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
 
     project = ui.start_window.start_window(stdscr)
-    
+
     if project == "new":
         win = ui.window.Window(stdscr)
-        
+
         win.gen_window()
         win.gen_title("new animation")
         win.gen_widgets(
@@ -497,7 +519,7 @@ def main(stdscr):
     else:
         drawing = Drawing()
         drawing.load(os.path.join(drawing.save_path, project))
-    
+
     while drawing.running:
         drawing.display_top()
         drawing.get_keys()
