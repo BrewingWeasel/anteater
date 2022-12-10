@@ -46,6 +46,7 @@ class Drawing:
         self.init_coords = None
         self.final_coords = None
         self.times_modified = 0
+        self.buffer = []
 
         self.char = "a"
         self.color = curses.COLOR_WHITE
@@ -416,10 +417,17 @@ class Drawing:
     def paste(self):
         if self.buffer != []:
             key = self.screen.getch()
-            _, xpos, ypos, _, button = curses.getmouse()
-            while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED:
-                key = self.screen.getch()
+            ypos, xpos = 1, 1 # TODO: rewrite the double p to paste part
+            try:
                 _, xpos, ypos, _, button = curses.getmouse()
+                while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED and key != 112:
+                    key = self.screen.getch()
+                    try:
+                        _, xpos, ypos, _, button = curses.getmouse()
+                    except curses.error:
+                        pass
+            except curses.error:
+                pass
             for y, yval in enumerate(self.buffer):
                 for x, xval in enumerate(yval):
                     try:
@@ -447,7 +455,7 @@ class Drawing:
         self.init_coords = (1, 1)
         self.final_coords = (curses.LINES - 1, curses.COLS - 1)
         self.draw_selection()
-
+    
     def get_keys(self):
 
         keybinds = {
