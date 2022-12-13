@@ -8,6 +8,7 @@ import ui.window
 import ui.color_picker
 import ui.confirmation
 import ui.start_window
+import ui.help_menu
 
 
 class Drawing:
@@ -67,8 +68,11 @@ class Drawing:
     def in_selection(self, y, x):
         if self.final_coords is None:
             return True
-        elif self.final_coords[0] >= y >= self.init_coords[0] and self.final_coords[1] >= x >= self.init_coords[1]:
-             return True
+        elif (
+            self.final_coords[0] >= y >= self.init_coords[0]
+            and self.final_coords[1] >= x >= self.init_coords[1]
+        ):
+            return True
         return False
 
     def add_char(self, y, x, char_to_add="cur_char"):
@@ -419,10 +423,14 @@ class Drawing:
     def paste(self):
         if self.buffer != []:
             key = self.screen.getch()
-            ypos, xpos = 1, 0 # TODO: rewrite this whole part
+            ypos, xpos = 1, 0  # TODO: rewrite this whole part
             try:
                 _, xpos, ypos, _, button = curses.getmouse()
-                while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED and key != 112:
+                while (
+                    button != curses.BUTTON1_PRESSED
+                    and button != curses.BUTTON1_CLICKED
+                    and key != 112
+                ):
                     key = self.screen.getch()
                     try:
                         _, xpos, ypos, _, button = curses.getmouse()
@@ -452,12 +460,16 @@ class Drawing:
                         pass
             self.draw_frame()
 
-    def select_all(self): # TODO: FIX
+    def select_all(self):  # TODO: FIX
         self.selecting = False
         self.init_coords = (1, 0)
         self.final_coords = (curses.LINES, curses.COLS - 2)
         self.draw_selection()
-    
+
+    def show_help(self):
+        ui.help_menu.show_help(self.screen)
+        self.draw_frame()
+
     def get_keys(self):
 
         keybinds = {
@@ -482,6 +494,7 @@ class Drawing:
             121: self.copy,  # On 'y' pressed
             112: self.paste,  # On 'p' pressed
             1: self.select_all,  # On Ctrl + 'a' pressed
+            104: self.show_help,
         }
 
         if not self.playing:
@@ -537,6 +550,8 @@ def main(stdscr):
         drawing = Drawing()
         drawing.load(os.path.join(drawing.save_path, project))
 
+    drawing.show_help()
+    
     while drawing.running:
         drawing.display_top()
         drawing.get_keys()
