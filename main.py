@@ -69,7 +69,7 @@ class Drawing:
         if self.final_coords is None:
             return True
         elif (
-            self.final_coords[0] >= y >= self.init_coords[0]
+            self.final_coords[0] > y >= self.init_coords[0]
             and self.final_coords[1] >= x >= self.init_coords[1]
         ):
             return True
@@ -502,7 +502,7 @@ class Drawing:
             try:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
-                print(key)
+                pass
         else:
             pass
 
