@@ -1,8 +1,10 @@
 # _Anteater_
 
-A tool for drawing and creating animations for the terminal...in the terminal. 
+Anteater is a tool for creating drawings and animations in the terminal. Anteater is written in python using curses and has no external dependencies. Anteater was built with linux in mind, but it should work on other systems.
 
-Currently the UI is the main focus, but in the future I hope to add features such as brushes (with brush size)
+# Running:
+Note that in order to use Anteater, it is *highly* recommended to set your "term" environment variable to xterm-1003. For example, ```export TERM=xterm-1003```
+
 
 # Current Keybinds (subject to change):
 - right arrow: next frame
