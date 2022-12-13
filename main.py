@@ -298,10 +298,16 @@ class Drawing:
         if otherframe is None:
             otherframe = self.cur_frame - 1
         diffs = []
-        for y, row in enumerate(self.charlocations[self.cur_frame]):
-            for x, new_char in enumerate(row):
-                if new_char != self.charlocations[otherframe][y][x]:
-                    diffs.append(((y, x), new_char))
+        if otherframe == -1:
+            for y, row in enumerate(self.charlocations[self.cur_frame]):
+                for x, new_char in enumerate(row):
+                    if new_char[0] != ' ':
+                        diffs.append(((y, x), new_char))
+        else:
+            for y, row in enumerate(self.charlocations[self.cur_frame]):
+                for x, new_char in enumerate(row):
+                    if new_char != self.charlocations[otherframe][y][x]:
+                        diffs.append(((y, x), new_char))
         return diffs
 
     def next_frame(self):
@@ -320,12 +326,11 @@ class Drawing:
         # Print each frame
         for frame in range(self.frames - 1):
             self.display_top()
-            time.sleep(1 / self.fps)
+            time.sleep(1 / 6)
             self.cur_frame += 1
-            for coords, char_info in self.get_differences():
-                y, x = coords
-                new_char, new_char_color = char_info
-                print(self.get_ansi_code_string(new_char_color, new_char, y, x))
+            self.screen.clear()
+            self.draw_frame()
+            self.screen.refresh()
 
     def get_ansi_code_string(self, color, char, y, x):
         return f"\033[0;3{curses.pair_content(curses.pair_number(color))[0]}m\033[{y};{x}H{char}"
@@ -350,14 +355,16 @@ class Drawing:
             for frame in range(self.frames - 1):
                 f.write(f"# frame {frame}\n")
                 f.write(f"time.sleep({1 / self.fps})\n")
-                self.cur_frame += 1
                 for coords, char_info in self.get_differences():
                     y, x = coords
                     new_char, new_char_color = char_info
                     f.write(
                         f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
                     )
-                    self.screen.addstr(y, x, new_char, new_char_color)
+                self.screen.clear()
+                self.draw_frame()
+                self.screen.refresh()
+                self.cur_frame += 1
         win.delete()
 
     def save(self):
