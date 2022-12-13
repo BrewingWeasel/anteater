@@ -67,7 +67,7 @@ class Drawing:
     def in_selection(self, y, x):
         if self.final_coords is None:
             return True
-        elif self.final_coords[0] > y >= self.init_coords[0] and self.final_coords[1] > x >= self.init_coords[1]:
+        elif self.final_coords[0] >= y >= self.init_coords[0] and self.final_coords[1] >= x >= self.init_coords[1]:
              return True
         return False
 
@@ -137,16 +137,17 @@ class Drawing:
             self.selecting = False
             self.final_coords = (y, x)
             # Make init coords be in the top left
-            if self.init_coords[0] > self.final_coords[0]:
-                self.final_coords, self.init_coords = (
-                    self.init_coords[0],
-                    self.final_coords[1],
-                ), (self.final_coords[0], self.init_coords[1])
-            if self.init_coords[1] > self.final_coords[1]:
-                self.final_coords, self.init_coords = (
-                    self.final_coords[0],
-                    self.init_coords[1],
-                ), (self.init_coords[0], self.final_coords[1])
+            if self.final_coords is not None and self.init_coords is not None:
+                if self.init_coords[0] > self.final_coords[0]:
+                    self.final_coords, self.init_coords = (
+                        self.init_coords[0],
+                        self.final_coords[1],
+                    ), (self.final_coords[0], self.init_coords[1])
+                if self.init_coords[1] > self.final_coords[1]:
+                    self.final_coords, self.init_coords = (
+                        self.final_coords[0],
+                        self.init_coords[1],
+                    ), (self.init_coords[0], self.final_coords[1])
 
             self.draw_selection()
 
@@ -243,7 +244,7 @@ class Drawing:
     def _fill(self, y, x, original, replace):
         if (
             y > 0
-            and x > 0
+            and x >= 0
             and y < len(self.charlocations[self.cur_frame])
             and x < len(self.charlocations[self.cur_frame][y])
         ):
@@ -373,6 +374,7 @@ class Drawing:
         with open(location, "wb") as f:
             pickle.dump(self.charlocations, f)
         win.delete()
+        self.draw_frame()
 
     def load(self, location=""):
         if location == "":
@@ -393,7 +395,7 @@ class Drawing:
         if self.init_coords is not None and self.final_coords is not None:
             for y in range(self.init_coords[0], self.final_coords[0]):
                 # TODO: optimize
-                for x in range(self.init_coords[1], self.final_coords[1]):
+                for x in range(self.init_coords[1], self.final_coords[1] + 1):
                     char, color = self.charlocations[self.cur_frame][y][x]
                     self.screen.addstr(y, x, char, color | curses.A_REVERSE)
 
@@ -417,7 +419,7 @@ class Drawing:
     def paste(self):
         if self.buffer != []:
             key = self.screen.getch()
-            ypos, xpos = 1, 1 # TODO: rewrite the double p to paste part
+            ypos, xpos = 1, 0 # TODO: rewrite this whole part
             try:
                 _, xpos, ypos, _, button = curses.getmouse()
                 while button != curses.BUTTON1_PRESSED and button != curses.BUTTON1_CLICKED and key != 112:
@@ -450,10 +452,10 @@ class Drawing:
                         pass
             self.draw_frame()
 
-    def select_all(self):
+    def select_all(self): # TODO: FIX
         self.selecting = False
-        self.init_coords = (1, 1)
-        self.final_coords = (curses.LINES - 1, curses.COLS - 1)
+        self.init_coords = (1, 0)
+        self.final_coords = (curses.LINES, curses.COLS - 2)
         self.draw_selection()
     
     def get_keys(self):
@@ -469,7 +471,7 @@ class Drawing:
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
             102: self.toggle_fill,  # On 'f' pressed
-            27: self.quit_drawing,  # On 'escape' pressed
+            # 27: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
             83: self.save,  # On 's' pressed
