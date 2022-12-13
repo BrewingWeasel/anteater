@@ -131,7 +131,6 @@ class Drawing:
         elif button & curses.BUTTON3_PRESSED:
             if not self.selecting:
                 self.remove_selection()
-                print("lol")
                 self.init_coords = (y, x)
             self.selecting = True
         elif (
@@ -338,33 +337,66 @@ class Drawing:
     def export(self):
         win = ui.window.Window(self.screen)
         win.gen_window()
-        win.gen_title("Save file")
+        win.gen_title("Export file")
         win.gen_widgets(
             [
                 (
                     ui.widgets.TextInput,
                     "File location",
                     f"{self.export_file}",
+                ),
+                (
+                    ui.widgets.TextInput,
+                    "Loop (y/n)",
+                    "y",
                 )
             ]
         )
-        self.export_file, _ = win.get_contents()
+        self.export_file, loop, _ = win.get_contents()
+        loop = loop.strip().lower().startswith('y')
+        prefix = '\t' if loop else ''
         with open(self.export_file, "w") as f:
             f.write("import time\nprint('\\n' * 100)\n")
             self.cur_frame = 0
-            for frame in range(self.frames - 1):
-                f.write(f"# frame {frame}\n")
-                f.write(f"time.sleep({1 / self.fps})\n")
+           
+            # Handle the first frame outside of loop so that looping works           
+            f.write(f"# frame 0\n")
+            f.write(f"time.sleep({1 / self.fps})\n")
+            for coords, char_info in self.get_differences():
+                y, x = coords
+                new_char, new_char_color = char_info
+                f.write(
+                    f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
+                )
+            self.cur_frame += 1
+            
+            if loop:
+                f.write("while True:\n")
+            for frame in range(1, self.frames):
+                f.write(f"{prefix}# frame {frame}\n")
+                f.write(f"{prefix}time.sleep({1 / self.fps})\n")
                 for coords, char_info in self.get_differences():
                     y, x = coords
                     new_char, new_char_color = char_info
                     f.write(
-                        f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
+                        f"{prefix}print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
                     )
                 self.screen.clear()
                 self.draw_frame()
                 self.screen.refresh()
                 self.cur_frame += 1
+            
+            if loop:
+                f.write("# frame 0\n")
+                f.write(f"\ttime.sleep({1 / self.fps})\n")
+                self.cur_frame = 0
+                for coords, char_info in self.get_differences(otherframe=self.frames - 1):
+                    y, x = coords
+                    new_char, new_char_color = char_info
+                    f.write(
+                        f"\tprint('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
+                    )
+
         win.delete()
 
     def save(self):
