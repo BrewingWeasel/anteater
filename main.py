@@ -398,6 +398,7 @@ class Drawing:
                     )
 
         win.delete()
+        self.draw_frame()
 
     def save(self):
         win = ui.window.Window(self.screen)
