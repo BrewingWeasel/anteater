@@ -5,6 +5,7 @@ Anteater is a tool for creating drawings and animations in the terminal. Anteate
 # Running:
 Note that in order to use Anteater, it is *highly* recommended to set your "term" environment variable to xterm-1003. For example, ```export TERM=xterm-1003```
 
+A reddit post with a sample video of the project can be found [here](https://www.reddit.com/r/unixporn/comments/zq62yv/oc_i_made_a_tool_to_create_custom_animations_in/) (The video is too big to upload)
 
 # Current Keybinds (subject to change):
 - right arrow: next frame
