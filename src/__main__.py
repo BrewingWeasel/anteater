@@ -433,7 +433,8 @@ class Drawing:
         self.draw_frame()
 
     def quit_drawing(self):
-        self.running = False
+        if ui.confirmation.confirm(self.screen, "Quit the program?"):
+            self.running = False
 
     def draw_selection(self):
         if self.init_coords is not None and self.final_coords is not None:
@@ -523,7 +524,7 @@ class Drawing:
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
             102: self.toggle_fill,  # On 'f' pressed
-            # 27: self.quit_drawing,  # On 'escape' pressed
+            27: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
             83: self.save,  # On 's' pressed
