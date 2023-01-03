@@ -24,12 +24,12 @@ class Widget:
 
     def _input_response(self):
         char = self.screen.getkey()  # TODO: make enter work
-        if char == "KEY_UP":
+        if char == "KEY_UP" or char == "k":
             self.active = False
             finished_input = True
             self.draw()
             return "up"
-        elif char == "KEY_DOWN":
+        elif char == "KEY_DOWN" or char == "j":
             self.active = False
             finished_input = True
             self.draw()
