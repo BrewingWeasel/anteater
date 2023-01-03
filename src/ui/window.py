@@ -40,15 +40,27 @@ class Window:
 
     def gen_widgets(self, widget_list, confirm=True):
         for i, widget in enumerate(widget_list):
-            widget_type, name, answer = widget
+            color = None 
+            if len(widget) > 3:
+                widget_type, name, answer, color = widget
+            else:
+                widget_type, name, answer = widget
             if widget_type == str:
                 self.gen_text(name, ypos=3 + i, xpos=5)
             else:
-                self.widgets.append(
-                    widget_type(
-                        self.screen, self.ymargin + 3 + i, self.xmargin + 5, name
+                # TODO Maybe clean up
+                if color == None:
+                    self.widgets.append(
+                        widget_type(
+                            self.screen, self.ymargin + 3 + i, self.xmargin + 5, name
+                        )
                     )
-                )
+                else: 
+                    self.widgets.append(
+                        widget_type(
+                            self.screen, self.ymargin + 3 + i, self.xmargin + 5, name, fg=color
+                        )
+                    )
                 self.widgets[-1].answer = answer
                 self.widgets[-1].draw()
         if confirm:
