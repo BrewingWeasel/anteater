@@ -13,12 +13,12 @@ class Widget:
 
         self.active = False
 
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
-        curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_BLUE)
+        curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.draw()
 
     def draw(self):
-        color = 2 if self.active else 1
+        color = 10 if self.active else 9
         self.cur_showing = self.prompt + self.input_prompt + self.answer
         self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
 
@@ -59,7 +59,7 @@ class TextInput(Widget):
             self.answer = self.answer[:-1]
             self.draw()
             self.screen.addstr(
-                self.y, self.x + len(self.cur_showing), " ", curses.color_pair(1)
+                self.y, self.x + len(self.cur_showing), " ", curses.color_pair(9)
             )
         elif response == "\n":
             self.active = False
@@ -73,14 +73,14 @@ class TextInput(Widget):
 class NumberInput(TextInput):
     def __init__(self, screen, y, x, prompt):
         super().__init__(screen, y, x, prompt)
-        curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_RED)
+        curses.init_pair(11, curses.COLOR_WHITE, curses.COLOR_RED)
 
     def draw(self):
-        color = 2 if self.active else 1
+        color = 10 if self.active else 9 
         try:
             self.answer = int(self.answer)
         except ValueError:
-            color = 3
+            color = 11
         self.cur_showing = self.prompt + self.input_prompt + str(self.answer)
         self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
 
