@@ -11,7 +11,8 @@ def get_color(screen):
     win.gen_window()
     win.gen_title("Pick your color")
     win.gen_widgets(
-        [(ui.widgets.ListItem, color, "", i) for i, color in enumerate(COLORS)], confirm=False
+        [(ui.widgets.ListItem, color, "", i) for i, color in enumerate(COLORS)],
+        confirm=False,
     )
 
     return ui.options.get_option(win)

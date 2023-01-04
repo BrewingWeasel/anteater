@@ -40,7 +40,7 @@ class Window:
 
     def gen_widgets(self, widget_list, confirm=True):
         for i, widget in enumerate(widget_list):
-            color = None 
+            color = None
             if len(widget) > 3:
                 widget_type, name, answer, color = widget
             else:
@@ -55,10 +55,14 @@ class Window:
                             self.screen, self.ymargin + 3 + i, self.xmargin + 5, name
                         )
                     )
-                else: 
+                else:
                     self.widgets.append(
                         widget_type(
-                            self.screen, self.ymargin + 3 + i, self.xmargin + 5, name, fg=color
+                            self.screen,
+                            self.ymargin + 3 + i,
+                            self.xmargin + 5,
+                            name,
+                            fg=color,
                         )
                     )
                 self.widgets[-1].answer = answer

@@ -21,7 +21,7 @@ class Widget:
         self.draw()
 
     def draw(self):
-        color = 18 if self.active else 9+self.fg
+        color = 18 if self.active else 9 + self.fg
         self.cur_showing = self.prompt + self.input_prompt + self.answer
         self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
 
@@ -62,7 +62,10 @@ class TextInput(Widget):
             self.answer = self.answer[:-1]
             self.draw()
             self.screen.addstr(
-                self.y, self.x + len(self.cur_showing), " ", curses.color_pair(9+self.fg)
+                self.y,
+                self.x + len(self.cur_showing),
+                " ",
+                curses.color_pair(9 + self.fg),
             )
         elif response == "\n":
             self.active = False
@@ -79,7 +82,7 @@ class NumberInput(TextInput):
         curses.init_pair(19, curses.COLOR_WHITE, curses.COLOR_RED)
 
     def draw(self):
-        color = 18 if self.active else 9+self.fg
+        color = 18 if self.active else 9 + self.fg
         try:
             self.answer = int(self.answer)
         except ValueError:

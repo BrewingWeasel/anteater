@@ -48,15 +48,16 @@ class Drawing:
         self.final_coords = None
         self.times_modified = 0
         self.buffer = []
+        self.brush = "default"
 
         self.char = "a"
         self.color = curses.COLOR_WHITE
         self.mode = "none"
 
         self.charlocations = []
-        for frame in range(self.frames):
+        for _ in range(self.frames):
             framelocations = []
-            for y in range(curses.LINES):
+            for _ in range(curses.LINES):
                 framelocations.append([(" ", self.color)] * curses.COLS)
             self.charlocations.append(framelocations)
 
@@ -232,11 +233,11 @@ class Drawing:
         self.reset_colors()
 
     def clear(self, force=False):
-        if ui.confirmation.confirm(self.screen, "Clear the screen?"):
+        if force or ui.confirmation.confirm(self.screen, "Clear the screen?"):
             self.screen.clear()
 
             self.charlocations[self.cur_frame] = []
-            for y in range(curses.LINES):
+            for _ in range(curses.LINES):
                 self.charlocations[self.cur_frame].append(
                     [(" ", self.color)] * curses.COLS
                 )
@@ -300,7 +301,7 @@ class Drawing:
         if otherframe == -1:
             for y, row in enumerate(self.charlocations[self.cur_frame]):
                 for x, new_char in enumerate(row):
-                    if new_char[0] != ' ':
+                    if new_char[0] != " ":
                         diffs.append(((y, x), new_char))
         else:
             for y, row in enumerate(self.charlocations[self.cur_frame]):
@@ -349,18 +350,18 @@ class Drawing:
                     ui.widgets.TextInput,
                     "Loop (y/n)",
                     "y",
-                )
+                ),
             ]
         )
         self.export_file, loop, _ = win.get_contents()
-        loop = loop.strip().lower().startswith('y')
-        prefix = '\t' if loop else ''
+        loop = loop.strip().lower().startswith("y")
+        prefix = "\t" if loop else ""
         with open(self.export_file, "w") as f:
             f.write("import time\nprint('\\n' * 100)\n")
             self.cur_frame = 0
-           
-            # Handle the first frame outside of loop so that looping works           
-            f.write(f"# frame 0\n")
+
+            # Handle the first frame outside of loop so that looping works
+            f.write("# frame 0\n")
             f.write(f"time.sleep({1 / self.fps})\n")
             for coords, char_info in self.get_differences():
                 y, x = coords
@@ -369,7 +370,7 @@ class Drawing:
                     f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
                 )
             self.cur_frame += 1
-            
+
             if loop:
                 f.write("while True:\n")
             for frame in range(1, self.frames):
@@ -385,12 +386,14 @@ class Drawing:
                 self.draw_frame()
                 self.screen.refresh()
                 self.cur_frame += 1
-            
+
             if loop:
                 f.write("# frame 0\n")
                 f.write(f"\ttime.sleep({1 / self.fps})\n")
                 self.cur_frame = 0
-                for coords, char_info in self.get_differences(otherframe=self.frames - 1):
+                for coords, char_info in self.get_differences(
+                    otherframe=self.frames - 1
+                ):
                     y, x = coords
                     new_char, new_char_color = char_info
                     f.write(
@@ -592,7 +595,7 @@ def main(stdscr):
         drawing.load(os.path.join(drawing.save_path, project))
 
     drawing.show_help()
-    
+
     while drawing.running:
         drawing.display_top()
         drawing.get_keys()
