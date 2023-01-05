@@ -6,6 +6,7 @@ import time
 import pickle
 import ui.window
 import ui.color_picker
+import ui.brush_picker
 import ui.confirmation
 import ui.start_window
 import ui.help_menu
@@ -80,6 +81,11 @@ class Drawing:
             return True
         return False
 
+    def _get_history_index(self, loc):
+        for i, char in enumerate(self.history[self.times_modified]):
+            if (char[0], char[1]) == loc:
+                return i
+
     def add_char(self, y, x, char_to_add="cur_char"):
         if char_to_add == "cur_char":
             char_to_add = self.char
@@ -92,9 +98,10 @@ class Drawing:
 
                 if (y, x) in self.recentlyadded:
                     index = self.recentlyadded.index((y, x))
-
                     self.recentlyadded.pop(index)
+
                     oldinfo = self.history[self.times_modified].pop(index)
+
                     oldchar = oldinfo[2]
                     oldcolor = oldinfo[4]
 
@@ -230,7 +237,7 @@ class Drawing:
         try:
             if len(self.history[self.times_modified]):
                 for i in self.history[self.times_modified]:
-                    y, x, _oldchar, newchar, _oldcolor, newcolor = i
+                    y, x, _, newchar, _, newcolor = i
                     try:
                         self.screen.addstr(y, x, newchar, newcolor)
                         self.charlocations[self.cur_frame][y][x] = (
@@ -554,6 +561,11 @@ class Drawing:
             self.brush_size += 1
             self.get_cur_brush()
 
+    def select_brush(self):
+        self.brush = ui.brush_picker.get_brush(self.screen)
+        self.get_cur_brush()
+        self.draw_frame()
+
     def get_keys(self):
 
         keybinds = {
@@ -583,6 +595,7 @@ class Drawing:
             91: self.decrease_size,  # on '[' pressed
             125: self.increase_size,
             93: self.increase_size,  # on ']' pressed
+            98: self.select_brush,
         }
 
         if not self.playing:
