@@ -24,7 +24,8 @@ class Drawing:
 
         self.screen.keypad(1)
         curses.curs_set(0)
-        curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
+        curses.mousemask(curses.ALL_MOUSE_EVENTS |
+                         curses.REPORT_MOUSE_POSITION)
         curses.flushinp()
         curses.noecho()
 
@@ -48,7 +49,10 @@ class Drawing:
         self.final_coords = None
         self.times_modified = 0
         self.buffer = []
+
+        self.brush_size = 0
         self.brush = "default"
+        self.brush_shape = "*"
 
         self.char = "a"
         self.color = curses.COLOR_WHITE
@@ -98,7 +102,8 @@ class Drawing:
                     (y, x, oldchar, char_to_add, oldcolor, self.color)
                 )
                 self.recentlyadded.append((y, x))
-                self.charlocations[self.cur_frame][y][x] = (char_to_add, self.color)
+                self.charlocations[self.cur_frame][y][x] = (
+                    char_to_add, self.color)
         except curses.error:
             pass  # TODO: Error system
 
@@ -113,7 +118,8 @@ class Drawing:
         _, x, y, _, button = curses.getmouse()
         if self.modify:
             if self.draw:
-                self.add_char(y, x)
+                self.draw_brush(y, x)
+                # self.add_char(y, x)
             if self.erase:
                 self.add_char(y, x, char_to_add=" ")
         if button & curses.BUTTON1_PRESSED:
@@ -123,7 +129,7 @@ class Drawing:
         elif button & curses.BUTTON1_CLICKED:
             if not self.modify:
                 if self.draw:
-                    self.add_char(y, x)
+                    self.draw_brush(y, x)
                 if self.erase:
                     self.add_char(y, x, char_to_add=" ")
             self.unmodify()
@@ -154,6 +160,16 @@ class Drawing:
                     ), (self.init_coords[0], self.final_coords[1])
 
             self.draw_selection()
+
+    def draw_brush(self, y, x):
+        brush_lines = self.brush_shape.split('\n')
+        brush_height = len(brush_lines)
+        brush_width = len(max(brush_lines, key=len))
+        for cy, line in enumerate(brush_lines):
+            for cx, char in enumerate(line):
+                if char == '*':
+                    self.add_char(y - round(brush_height/2) + cy,
+                                  x - round(brush_width/2) + cx)
 
     def toggle_draw(self):
         self.erase = False
@@ -201,7 +217,8 @@ class Drawing:
                     y, x, oldchar, _newchar, oldcolor, _newcolor = i
                     try:
                         self.screen.addstr(y, x, oldchar, oldcolor)
-                        self.charlocations[self.cur_frame][y][x] = (oldchar, oldcolor)
+                        self.charlocations[self.cur_frame][y][x] = (
+                            oldchar, oldcolor)
                     except curses.error:
                         pass
                 self.times_modified -= 1
@@ -216,7 +233,8 @@ class Drawing:
                     y, x, _oldchar, newchar, _oldcolor, newcolor = i
                     try:
                         self.screen.addstr(y, x, newchar, newcolor)
-                        self.charlocations[self.cur_frame][y][x] = (newchar, newcolor)
+                        self.charlocations[self.cur_frame][y][x] = (
+                            newchar, newcolor)
                     except curses.error:
                         pass
                 self.times_modified += 1
@@ -256,7 +274,8 @@ class Drawing:
                 if self.charlocations[self.cur_frame][y][x] == original:
                     self.charlocations[self.cur_frame][y][x] = replace
                     self.history[self.times_modified].append(
-                        (y, x, original[0], replace[0], original[1], replace[1])
+                        (y, x, original[0], replace[0],
+                         original[1], replace[1])
                     )
                     self.checked.append((y, x))
 
@@ -428,7 +447,8 @@ class Drawing:
             win = ui.window.Window(self.screen)
             win.gen_window()
             win.gen_title("Load file")
-            win.gen_widgets([(ui.widgets.TextInput, "File location", self.save_path)])
+            win.gen_widgets(
+                [(ui.widgets.TextInput, "File location", self.save_path)])
             location, _ = win.get_contents()
             win.delete()
         with open(location, "rb") as f:
@@ -499,7 +519,8 @@ class Drawing:
                                 yval[1],
                             )
                         )
-                        self.charlocations[self.cur_frame][ypos + y][xpos + x] = xval
+                        self.charlocations[self.cur_frame][ypos +
+                                                           y][xpos + x] = xval
                     except IndexError:
                         pass
             self.draw_frame()
@@ -513,6 +534,25 @@ class Drawing:
     def show_help(self):
         ui.help_menu.show_help(self.screen)
         self.draw_frame()
+
+    def get_cur_brush(self):
+        with open(f"brushes/{self.brush}") as f:
+            brush_shapes = f.read().split("#SIZE\n")
+            # FIX THIS PART I THINK MAYBE
+            if self.brush_size >= len(brush_shapes) - 1:
+                self.brush_shape = brush_shapes[-1]
+            else:
+                self.brush_shape = brush_shapes[self.brush_size]
+
+    def decrease_size(self):
+        if self.brush_size > 0:
+            self.brush_size -= 1
+            self.get_cur_brush()
+
+    def increase_size(self):
+        if self.brush_size < 4:  # TODO: Use actual variable
+            self.brush_size += 1
+            self.get_cur_brush()
 
     def get_keys(self):
 
@@ -539,6 +579,10 @@ class Drawing:
             112: self.paste,  # On 'p' pressed
             1: self.select_all,  # On Ctrl + 'a' pressed
             104: self.show_help,
+            123: self.decrease_size,
+            91: self.decrease_size,  # on '[' pressed
+            125: self.increase_size,
+            93: self.increase_size,  # on ']' pressed
         }
 
         if not self.playing:
@@ -547,8 +591,6 @@ class Drawing:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
                 pass
-        else:
-            pass
 
     def display_top(self):
         mode = "none"
@@ -563,7 +605,7 @@ class Drawing:
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} brush size: {self.brush_size}",
         )
 
 
