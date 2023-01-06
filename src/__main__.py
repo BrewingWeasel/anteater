@@ -167,21 +167,15 @@ class Drawing:
                                   x - round(brush_width/2) + cx)
 
     def toggle_draw(self):
-        self.erase = False
+        self.toggle_modify()
         self.draw = True
-        self.modify = False
-        self.fill = False
 
     def toggle_erase(self):
-        self.draw = False
+        self.toggle_modify()
         self.erase = True
-        self.modify = False
-        self.fill = False
 
     def toggle_fill(self):
-        self.draw = False
-        self.erase = False
-        self.modify = False
+        self.toggle_modify()
         self.fill = True
 
     def toggle_modify(self):
@@ -190,6 +184,7 @@ class Drawing:
         else:
             self.draw = False
             self.erase = False
+            self.fill = False
 
     def change_char(self):
         win = ui.window.Window(self.screen, margins=(40, 15))
@@ -597,6 +592,7 @@ class Drawing:
             mode = "fill"
         if mode in ["erase", "draw"] and self.modify:
             mode += " (m)"
+        # self.screen.addstr(0, 0, " " * 100)
         self.screen.addstr(
             0,
             0,
