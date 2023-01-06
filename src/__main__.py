@@ -67,7 +67,7 @@ class Drawing:
             self.charlocations.append(framelocations)
 
         self.history = [[]]
-        self.recentlyadded = []
+        self.recentlyadded = set()
 
         self.screen.clear()
 
@@ -81,44 +81,32 @@ class Drawing:
             return True
         return False
 
-    def _get_history_index(self, loc):
-        for i, char in enumerate(self.history[self.times_modified]):
-            if (char[0], char[1]) == loc:
-                return i
+    def add_to_history(self):
+        for coords in self.recentlyadded:
+            y, x = coords
+            oldchar, oldcolor = self.charlocations[self.cur_frame][y][x]
+            self.charlocations[self.cur_frame][y][x] = (
+                self.modifying_char, self.color)
+            self.history[self.times_modified].append(
+                (y, x, oldchar, self.modifying_char, oldcolor, self.color))
+        self.recentlyadded = set()
 
     def add_char(self, y, x, char_to_add="cur_char"):
         if char_to_add == "cur_char":
             char_to_add = self.char
+        self.modifying_char = char_to_add
         try:
             if y > 0 and self.in_selection(y, x):
                 self.screen.addstr(y, x, char_to_add, self.color)
-
-                oldchar = self.charlocations[self.cur_frame][y][x][0]
-                oldcolor = self.charlocations[self.cur_frame][y][x][1]
-
-                if (y, x) in self.recentlyadded:
-                    index = self.recentlyadded.index((y, x))
-                    self.recentlyadded.pop(index)
-
-                    oldinfo = self.history[self.times_modified].pop(index)
-
-                    oldchar = oldinfo[2]
-                    oldcolor = oldinfo[4]
-
-                self.history[self.times_modified].append(
-                    (y, x, oldchar, char_to_add, oldcolor, self.color)
-                )
-                self.recentlyadded.append((y, x))
-                self.charlocations[self.cur_frame][y][x] = (
-                    char_to_add, self.color)
+                self.recentlyadded.add((y, x))
         except curses.error:
             pass  # TODO: Error system
 
     def unmodify(self):
         self.modify = False
+        self.add_to_history()
         self.times_modified += 1
         self.history.append([])
-        self.recentlyadded = []
         self.draw_selection()
 
     def react_to_mouse(self):
@@ -279,11 +267,7 @@ class Drawing:
         ):
             if (y, x) not in self.checked and self.in_selection(y, x):
                 if self.charlocations[self.cur_frame][y][x] == original:
-                    self.charlocations[self.cur_frame][y][x] = replace
-                    self.history[self.times_modified].append(
-                        (y, x, original[0], replace[0],
-                         original[1], replace[1])
-                    )
+                    self.add_char(y, x)
                     self.checked.append((y, x))
 
                     self._fill(y + 1, x, original, replace)
@@ -298,7 +282,6 @@ class Drawing:
         original = self.charlocations[self.cur_frame][y][x]
         replace = (self.char, self.color)
         self._fill(y, x, original, replace)
-        self.draw_frame()
         self.checked = []
 
     def draw_frame(self):
@@ -315,7 +298,7 @@ class Drawing:
     def changeframe(self):
         self.screen.clear()
         self.history = [[]]
-        self.recentlyadded = []
+        self.recentlyadded = set()
         self.times_modified = 0
         self.remove_selection()
         self.draw_frame()
@@ -545,7 +528,6 @@ class Drawing:
     def get_cur_brush(self):
         with open(f"brushes/{self.brush}") as f:
             brush_shapes = f.read().split("#SIZE\n")
-            # FIX THIS PART I THINK MAYBE
             if self.brush_size >= len(brush_shapes) - 1:
                 self.brush_shape = brush_shapes[-1]
             else:
@@ -618,7 +600,7 @@ class Drawing:
         self.screen.addstr(
             0,
             0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} brush size: {self.brush_size}",
+            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
         )
 
 
