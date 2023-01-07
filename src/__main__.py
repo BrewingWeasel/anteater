@@ -443,6 +443,7 @@ class Drawing:
     def quit_drawing(self):
         if ui.confirmation.confirm(self.screen, "Quit the program?"):
             self.running = False
+        self.draw_frame()
 
     def draw_selection(self):
         if self.init_coords is not None and self.final_coords is not None:
