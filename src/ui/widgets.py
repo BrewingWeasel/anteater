@@ -27,15 +27,17 @@ class Widget:
         self.screen.addstr(self.y, self.x, self.cur_showing,
                            curses.color_pair(color))
 
+    def switch_selected(self):
+        self.active = False
+        self.draw()
+
     def _input_response(self):
         char = self.screen.getkey()
-        if char == "KEY_UP" or char == "k":
-            self.active = False
-            self.draw()
+        if char == "KEY_UP":
+            self.switch_selected()
             return "up"
-        elif char == "KEY_DOWN" or char == "j":
-            self.active = False
-            self.draw()
+        elif char == "KEY_DOWN":
+            self.switch_selected()
             return "down"
         elif char == "":
             return "escape"
@@ -105,6 +107,12 @@ class AcceptInput(Widget):
             return response
         if response == "\n":
             return "finish"
+        if response == "j":
+            self.switch_selected()
+            return "down"
+        if response == "k":
+            self.switch_selected()
+            return "up"
         return response
 
 
@@ -126,6 +134,18 @@ class PreviewListItem(AcceptInput):
         self.description = description
         super().__init__(screen, y, x, prompt, fg=fg)
         self.possible_inputs = self.possible_inputs + ["KEY_LEFT", "KEY_RIGHT"]
+
+    def _input_response(self):
+        response = super()._input_response()
+        if response == "KEY_LEFT":
+            self.active = False
+            self.draw()
+            return "up"
+        elif response == "KEY_RIGHT":
+            self.active = False
+            self.draw()
+            return "down"
+        return response
 
     def draw(self):
         color = 18 if self.active else 9 + self.fg
