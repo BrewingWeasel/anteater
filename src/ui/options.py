@@ -17,3 +17,19 @@ def get_option(win):
         if response == "finish":
             win.delete()
             return win.cur_widget
+
+
+def get_preview_option(options):
+    cur_widget = 0
+    while True:
+        response = options[cur_widget].get_input()
+        if response == "up":
+            if cur_widget > 0:
+                cur_widget -= 1
+        if response == "down":
+            if cur_widget < len(options) - 1:
+                cur_widget += 1
+        if response == "escape":
+            return False
+        if response == "finish":
+            return cur_widget

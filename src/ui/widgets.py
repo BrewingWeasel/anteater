@@ -2,7 +2,7 @@ import curses
 
 
 class Widget:
-    def __init__(self, screen, y, x, prompt, input_prompt=": ", fg=2):
+    def __init__(self, screen, y, x, prompt, input_prompt=": ", fg=1):
         self.fg = fg
         self.screen = screen
         self.y = y
@@ -16,29 +16,28 @@ class Widget:
         if fg == 0:
             curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_BLACK)
         else:
-            curses.init_pair(9 + fg, curses.pair_content(fg)[0], curses.COLOR_WHITE)
+            curses.init_pair(9 + fg, curses.pair_content(fg)
+                             [0], curses.COLOR_WHITE)
         curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.draw()
 
     def draw(self):
         color = 18 if self.active else 9 + self.fg
         self.cur_showing = self.prompt + self.input_prompt + self.answer
-        self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
+        self.screen.addstr(self.y, self.x, self.cur_showing,
+                           curses.color_pair(color))
 
     def _input_response(self):
-        char = self.screen.getkey()  # TODO: make enter work
+        char = self.screen.getkey()
         if char == "KEY_UP" or char == "k":
             self.active = False
-            finished_input = True
             self.draw()
             return "up"
         elif char == "KEY_DOWN" or char == "j":
             self.active = False
-            finished_input = True
             self.draw()
             return "down"
-        elif char == "^[":
-            # TODO: make this actually work
+        elif char == "":
             return "escape"
         else:
             return char
@@ -69,7 +68,6 @@ class TextInput(Widget):
             )
         elif response == "\n":
             self.active = False
-            finished_input = True
             self.draw()
             return "down"
         elif not response.startswith("KEY_"):
@@ -88,7 +86,8 @@ class NumberInput(TextInput):
         except ValueError:
             color = 19
         self.cur_showing = self.prompt + self.input_prompt + str(self.answer)
-        self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
+        self.screen.addstr(self.y, self.x, self.cur_showing,
+                           curses.color_pair(color))
 
     def _input_response(self):
         self.answer = str(self.answer)
@@ -96,7 +95,7 @@ class NumberInput(TextInput):
 
 
 class AcceptInput(Widget):
-    def __init__(self, screen, y, x, prompt, fg=2):
+    def __init__(self, screen, y, x, prompt, fg=1):
         super().__init__(screen, y, x, prompt, input_prompt="", fg=fg)
         self.possible_inputs.append("finish")
 
@@ -110,7 +109,7 @@ class AcceptInput(Widget):
 
 
 class ListItem(AcceptInput):
-    def __init__(self, screen, y, x, prompt, fg=2):
+    def __init__(self, screen, y, x, prompt, fg=1):
         super().__init__(screen, y, x, prompt, fg=fg)
         self.possible_inputs = self.possible_inputs + [i for i in range(0, 10)]
 
@@ -120,3 +119,38 @@ class ListItem(AcceptInput):
             return int(response)
         else:
             return response
+
+
+class PreviewListItem(AcceptInput):
+    def __init__(self, screen, y, x, prompt, description, fg=1):
+        self.description = description
+        super().__init__(screen, y, x, prompt, fg=fg)
+        self.possible_inputs = self.possible_inputs + ["KEY_LEFT", "KEY_RIGHT"]
+
+    def draw(self):
+        color = 18 if self.active else 9 + self.fg
+        lines = self.prompt.split("\n")
+
+        temp_start = False
+        while len(lines) > 9:
+            if temp_start:
+                lines.pop(0)
+            else:
+                lines.pop()
+            temp_start = not temp_start
+
+        self.screen.addstr(self.y - 1,  self.x, self.description,
+                           curses.color_pair(color))
+        offset = 1
+        if len(lines) < 9:
+            offset += round((9 - len(lines)) / 2)
+
+        max_len = len(max(lines, key=len))
+
+        padding = ""
+        if max_len < len(self.description):
+            padding = " " * round((len(self.description) - max_len) / 2)
+        for line_num, line in enumerate(lines):
+            additional = (max_len - len(line)) * " "
+            self.screen.addstr(self.y + offset + line_num, self.x, padding + line + additional + padding,
+                               curses.color_pair(color))
