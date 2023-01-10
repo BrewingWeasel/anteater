@@ -133,18 +133,18 @@ class PreviewListItem(AcceptInput):
     def __init__(self, screen, y, x, prompt, description, fg=1):
         self.description = description
         super().__init__(screen, y, x, prompt, fg=fg)
-        self.possible_inputs = self.possible_inputs + ["KEY_LEFT", "KEY_RIGHT"]
+        self.possible_inputs = self.possible_inputs + ["left", "right"]
 
     def _input_response(self):
         response = super()._input_response()
         if response == "KEY_LEFT":
             self.active = False
             self.draw()
-            return "up"
+            return "left"
         elif response == "KEY_RIGHT":
             self.active = False
             self.draw()
-            return "down"
+            return "right"
         return response
 
     def draw(self):
@@ -159,8 +159,9 @@ class PreviewListItem(AcceptInput):
                 lines.pop()
             temp_start = not temp_start
 
-        self.screen.addstr(self.y - 1,  self.x, self.description,
-                           curses.color_pair(color))
+        self.screen.addstr(
+            self.y - 1, self.x, self.description, curses.color_pair(color)
+        )
         offset = 1
         if len(lines) < 9:
             offset += round((9 - len(lines)) / 2)
@@ -172,5 +173,9 @@ class PreviewListItem(AcceptInput):
             padding = " " * round((len(self.description) - max_len) / 2)
         for line_num, line in enumerate(lines):
             additional = (max_len - len(line)) * " "
-            self.screen.addstr(self.y + offset + line_num, self.x, padding + line + additional + padding,
-                               curses.color_pair(color))
+            self.screen.addstr(
+                self.y + offset + line_num,
+                self.x,
+                padding + line + additional + padding,
+                curses.color_pair(color),
+            )
