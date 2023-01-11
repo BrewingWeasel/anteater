@@ -6,7 +6,6 @@ import os
 
 
 BRUSHES = os.listdir("brushes")
-BRUSHES = BRUSHES + BRUSHES + BRUSHES
 BRUSHES_PER_ROW = 6
 
 
