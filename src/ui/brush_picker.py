@@ -6,6 +6,7 @@ import os
 
 
 BRUSHES = os.listdir("brushes")
+BRUSHES = BRUSHES + BRUSHES + BRUSHES
 BRUSHES_PER_ROW = 6
 
 
@@ -56,7 +57,7 @@ def get_brush(screen):
             if cur_row < (len(BRUSHES) / BRUSHES_PER_ROW) - 1:  # Why -2?
                 cur_row += 1
                 cur_row_changed = True
-                if (cur_row * BRUSHES_PER_ROW) + cur_row > len(BRUSHES):
+                if cur_widget + (cur_row * BRUSHES_PER_ROW) + cur_row > len(BRUSHES):
                     cur_widget = 0
         elif response == "escape":
             win.delete()
