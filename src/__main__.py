@@ -560,7 +560,7 @@ class Drawing:
             115: self.change_color,  # On 's' pressed
             108: self.clear,  # On 'l' pressed
             102: self.toggle_fill,  # On 'f' pressed
-            27: self.quit_drawing,  # On 'escape' pressed
+            113: self.quit_drawing,  # On 'escape' pressed
             32: self.play,  # On space pressed
             111: self.export,  # On 'o' pressed
             83: self.save,  # On 's' pressed
