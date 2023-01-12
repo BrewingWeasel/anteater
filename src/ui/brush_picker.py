@@ -9,7 +9,7 @@ BRUSHES = os.listdir("brushes")
 BRUSHES_PER_ROW = 6
 
 
-def get_brush(screen):
+def get_brush(screen, char):
     margins = (20, 10)
     win = ui.window.Window(screen, margins=margins)
     win.gen_window()
@@ -27,7 +27,7 @@ def get_brush(screen):
                 if math.floor(brush_num / BRUSHES_PER_ROW) == cur_row:
                     with open(f"brushes/{brush}", "r") as f:
                         brush_shape = f.read().split("#SIZE\n")[
-                            3].replace("*", "A")
+                            3].replace("*", char)
                         options.append(
                             ui.widgets.PreviewListItem(
                                 screen,

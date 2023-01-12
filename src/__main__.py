@@ -88,7 +88,8 @@ class Drawing:
             self.charlocations[self.cur_frame][y][x] = (
                 self.modifying_char, self.color)
             self.history[self.times_modified].append(
-                (y, x, oldchar, self.modifying_char, oldcolor, self.color))
+                (y, x, oldchar, self.modifying_char, oldcolor, self.color)
+            )
         self.recentlyadded = set()
 
     def add_char(self, y, x, char_to_add="cur_char"):
@@ -157,14 +158,16 @@ class Drawing:
             self.draw_selection()
 
     def draw_brush(self, y, x):
-        brush_lines = self.brush_shape.split('\n')
+        brush_lines = self.brush_shape.split("\n")
         brush_height = len(brush_lines)
         brush_width = len(max(brush_lines, key=len))
         for cy, line in enumerate(brush_lines):
             for cx, char in enumerate(line):
-                if char == '*':
-                    self.add_char(y - round(brush_height/2) + cy,
-                                  x - round(brush_width/2) + cx)
+                if char == "*":
+                    self.add_char(
+                        y - round(brush_height / 2) + cy,
+                        x - round(brush_width / 2) + cx,
+                    )
 
     def toggle_draw(self):
         self.toggle_modify()
@@ -540,7 +543,7 @@ class Drawing:
             self.get_cur_brush()
 
     def select_brush(self):
-        self.brush = ui.brush_picker.get_brush(self.screen)
+        self.brush = ui.brush_picker.get_brush(self.screen, self.char)
         self.get_cur_brush()
         self.draw_frame()
 
