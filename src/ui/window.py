@@ -1,11 +1,16 @@
 import curses
 import ui.widgets as widgets
+import time
 
 
 class Window:
-    def __init__(self, screen, margins=(4, 4)):
+    def __init__(self, screen, margins=(4, 4), size=(3, 20)):
         self.screen = screen
+
         self.xmargin, self.ymargin = margins
+        if size != (3, 20):  # TODO make everything use size
+            self.xmargin = round((curses.COLS - size[0]) / 2)
+            self.ymargin = round((curses.LINES - size[1]) / 2)
         self.widgets = []
         self.cur_widget = 0
         curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
@@ -22,7 +27,8 @@ class Window:
     def gen_title(self, title):
         xpos = round(curses.COLS / 2 - len(title) / 2)
         self.screen.addstr(
-            self.ymargin + 1, xpos, title, curses.color_pair(1) | curses.A_UNDERLINE
+            self.ymargin, xpos, title, curses.color_pair(
+                1) | curses.A_UNDERLINE
         )
 
     def gen_text(self, text, ypos="center", xpos="center", style=curses.A_NORMAL):
@@ -52,7 +58,7 @@ class Window:
                 if color == None:
                     self.widgets.append(
                         widget_type(
-                            self.screen, self.ymargin + 3 + i, self.xmargin + 5, name
+                            self.screen, self.ymargin + 2 + i, self.xmargin + 5, name
                         )
                     )
                 else:
@@ -92,4 +98,31 @@ class Window:
 
     def delete(self):
         for y in range(self.ymargin, curses.LINES - self.ymargin):
-            self.screen.addstr(y, self.xmargin, " " * (curses.COLS - self.xmargin * 2))
+            self.screen.addstr(y, self.xmargin, " " *
+                               (curses.COLS - self.xmargin * 2))
+
+
+def make_adaptive_window(
+    screen,
+    widgets=[],
+    text=[],
+    title="",
+    widgxmargin=2,
+    requiredx=0,
+    confirm=True,
+    widymargin=1.5,
+):
+    minx = len(title)
+    for i in widgets:
+        minx = max(len(i[1]), minx)
+    for i in text:
+        minx = max(len(i[1]), minx)
+
+    miny = 1 if title == "" else 2
+    miny += len(widgets) + len(text)
+    win = Window(screen, size=(minx + widgxmargin *
+                 2 + requiredx, miny + widymargin))
+    win.gen_window()
+    win.gen_title(title)
+    win.gen_widgets(widgets, confirm=confirm)
+    return win
