@@ -547,6 +547,24 @@ class Drawing:
         self.get_cur_brush()
         self.draw_frame()
 
+    def settings(self):
+        win = ui.window.Window(self.screen)
+        win.gen_window()
+        win.gen_title("animation settings")
+        win.gen_widgets(
+            [
+                (ui.widgets.TextInput, "file name", "animation"),
+                (ui.widgets.NumberInput, "total frames", "24"),
+                (ui.widgets.NumberInput, "frames per second", "12"),
+            ]
+        )
+        file_info = win.get_contents()
+        self.project_name = file_info[0]
+        self.frames = file_info[1]
+        self.fps = file_info[2]
+        win.delete()
+        self.draw_frame()
+
     def get_keys(self):
 
         keybinds = {
@@ -577,6 +595,7 @@ class Drawing:
             125: self.increase_size,
             93: self.increase_size,  # on ']' pressed
             98: self.select_brush,
+            107: self.settings,
         }
 
         if not self.playing:
