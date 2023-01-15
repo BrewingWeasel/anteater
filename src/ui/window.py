@@ -44,7 +44,7 @@ class Window:
 
         self.screen.addstr(ypos, xpos, text, curses.color_pair(1) | style)
 
-    def gen_widgets(self, widget_list, confirm=True):
+    def gen_widgets(self, widget_list, confirm=True, offset=2):
         for i, widget in enumerate(widget_list):
             color = None
             if len(widget) > 3:
@@ -55,17 +55,20 @@ class Window:
                 self.gen_text(name, ypos=3 + i, xpos=5)
             else:
                 # TODO Maybe clean up
-                if color == None:
+                if color is None:
                     self.widgets.append(
                         widget_type(
-                            self.screen, self.ymargin + 2 + i, self.xmargin + 5, name
+                            self.screen,
+                            self.ymargin + offset + i,
+                            self.xmargin + 5,
+                            name,
                         )
                     )
                 else:
                     self.widgets.append(
                         widget_type(
                             self.screen,
-                            self.ymargin + 3 + i,
+                            self.ymargin + offset + i,
                             self.xmargin + 5,
                             name,
                             fg=color,
@@ -110,7 +113,7 @@ def make_adaptive_window(
     widgxmargin=2,
     requiredx=0,
     confirm=True,
-    widymargin=1.5,
+    widgymargin=1,
 ):
     minx = len(title)
     for i in widgets:
@@ -121,7 +124,7 @@ def make_adaptive_window(
     miny = 1 if title == "" else 2
     miny += len(widgets) + len(text)
     win = Window(screen, size=(minx + widgxmargin *
-                 2 + requiredx, miny + widymargin))
+                 2 + requiredx, miny + widgymargin))
     win.gen_window()
     win.gen_title(title)
     win.gen_widgets(widgets, confirm=confirm)
