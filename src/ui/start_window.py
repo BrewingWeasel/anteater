@@ -2,7 +2,6 @@ import ui.window
 import ui.widgets
 import ui.options
 import os
-import curses
 
 usrdir = os.path.expanduser("~")
 save_path = os.path.join(usrdir, ".local", "share", "anteater")
@@ -34,14 +33,6 @@ def start_window(screen):
     # win.gen_text("PROJECTS", ypos=4, style=curses.A_BOLD | curses.A_UNDERLINE)
 
     win.gen_widgets(widgets, confirm=False, offset=5)
-    # win = ui.window.make_adaptive_window(
-    #     screen,
-    #     title="Pick your project",
-    #     widgets=widgets,
-    #     confirm=False,
-    #     widgxmargin=6,
-    #     widgymargin=3,
-    # )
 
     response = ui.options.get_option(win)
     if response != 0:

@@ -51,31 +51,29 @@ class Window:
                 widget_type, name, answer, color = widget
             else:
                 widget_type, name, answer = widget
-            if widget_type == str:
-                self.gen_text(name, ypos=3 + i, xpos=5)
+
+            # TODO Maybe clean up
+            if color is None:
+                self.widgets.append(
+                    widget_type(
+                        self.screen,
+                        self.ymargin + offset + i,
+                        self.xmargin + 5,
+                        name,
+                    )
+                )
             else:
-                # TODO Maybe clean up
-                if color is None:
-                    self.widgets.append(
-                        widget_type(
-                            self.screen,
-                            self.ymargin + offset + i,
-                            self.xmargin + 5,
-                            name,
-                        )
+                self.widgets.append(
+                    widget_type(
+                        self.screen,
+                        self.ymargin + offset + i,
+                        self.xmargin + 5,
+                        name,
+                        fg=color,
                     )
-                else:
-                    self.widgets.append(
-                        widget_type(
-                            self.screen,
-                            self.ymargin + offset + i,
-                            self.xmargin + 5,
-                            name,
-                            fg=color,
-                        )
-                    )
-                self.widgets[-1].answer = answer
-                self.widgets[-1].draw()
+                )
+            self.widgets[-1].answer = answer
+            self.widgets[-1].draw()
         if confirm:
             self.widgets.append(
                 widgets.AcceptInput(

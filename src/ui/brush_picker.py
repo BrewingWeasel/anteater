@@ -3,15 +3,17 @@ import ui.window
 import ui.options
 import math
 import os
-
+import curses
 
 BRUSHES = os.listdir("brushes")
 BRUSHES_PER_ROW = 6
 
 
 def get_brush(screen, char):
-    margins = (20, 10)
-    win = ui.window.Window(screen, margins=margins)
+    size = (144, 15)
+    margins = (round((curses.COLS - size[0]) / 2),
+               round((curses.LINES - size[1]) / 2))
+    win = ui.window.Window(screen, size=size)
     win.gen_window()
     win.gen_title("Choose a brush")
 
