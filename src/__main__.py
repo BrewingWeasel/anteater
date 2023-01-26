@@ -23,6 +23,13 @@ class Drawing:
         for i in range(0, curses.COLORS):
             curses.init_pair(i + 1, i, -1)
 
+        curses.init_pair(25, 7, 2)
+        curses.init_pair(26, 7, 4)
+        curses.init_pair(27, 2, 4)
+        curses.init_pair(28, 4, 2)
+        curses.init_pair(29, 7, 5)
+        curses.init_pair(30, 5, 2)
+
         self.screen.keypad(1)
         curses.curs_set(0)
         curses.mousemask(curses.ALL_MOUSE_EVENTS |
@@ -527,6 +534,7 @@ class Drawing:
     def get_cur_brush(self):
         with open(f"brushes/{self.brush}") as f:
             brush_shapes = f.read().split("#SIZE\n")
+            self.brush_size_max = len(brush_shapes)
             if self.brush_size >= len(brush_shapes) - 1:
                 self.brush_shape = brush_shapes[-1]
             else:
@@ -538,7 +546,7 @@ class Drawing:
             self.get_cur_brush()
 
     def increase_size(self):
-        if self.brush_size < 4:  # TODO: Use actual variable
+        if self.brush_size < self.brush_size_max:
             self.brush_size += 1
             self.get_cur_brush()
 
@@ -615,12 +623,23 @@ class Drawing:
             mode = "fill"
         if mode in ["erase", "draw"] and self.modify:
             mode += " (m)"
-        # self.screen.addstr(0, 0, " " * 100)
-        self.screen.addstr(
-            0,
-            0,
-            f"mode: {mode} char: {self.char} color: {self.color} frame: {self.cur_frame} modified: {self.times_modified}",
-        )
+
+        # TODO: REWORK
+        OPTIONS = [
+            (f" {self.project_name}  ", curses.color_pair(29)),
+            ("", curses.color_pair(30)),
+            (f" {mode} ", curses.color_pair(25)),
+            ("", curses.color_pair(27)),
+            (f" frame: {self.cur_frame}", curses.color_pair(26)),
+            ("", curses.color_pair(28)),
+            (f"   {self.char}   ", curses.color_pair(25)),
+        ]
+
+        cur_width = 0
+        for i, opt in enumerate(OPTIONS):
+            display, color = opt
+            self.screen.addstr(0, cur_width, display, color)
+            cur_width += len(display)
 
 
 def main(stdscr):
