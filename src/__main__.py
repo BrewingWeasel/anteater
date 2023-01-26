@@ -60,9 +60,9 @@ class Drawing:
 
         self.brush_size = 0
         self.brush = "default"
-        self.brush_shape = "*"
+        self.get_cur_brush()
 
-        self.char = "a"
+        self.char = "/"
         self.color = curses.COLOR_WHITE
         self.mode = "none"
 
