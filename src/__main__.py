@@ -10,6 +10,7 @@ import ui.brush_picker
 import ui.confirmation
 import ui.start_window
 import ui.help_menu
+import curve_detection
 
 
 class Drawing:
@@ -66,6 +67,8 @@ class Drawing:
         self.color = curses.COLOR_WHITE
         self.mode = "none"
 
+        self.curve_mode = False
+
         self.charlocations = []
         for _ in range(self.frames):
             framelocations = []
@@ -89,13 +92,12 @@ class Drawing:
         return False
 
     def add_to_history(self):
-        for coords in self.recentlyadded:
-            y, x = coords
+        for character in self.recentlyadded:
+            y, x, char = character
             oldchar, oldcolor = self.charlocations[self.cur_frame][y][x]
-            self.charlocations[self.cur_frame][y][x] = (
-                self.modifying_char, self.color)
+            self.charlocations[self.cur_frame][y][x] = (char, self.color)
             self.history[self.times_modified].append(
-                (y, x, oldchar, self.modifying_char, oldcolor, self.color)
+                (y, x, oldchar, char, oldcolor, self.color)
             )
         self.recentlyadded = set()
 
@@ -106,7 +108,7 @@ class Drawing:
         try:
             if y > 0 and self.in_selection(y, x):
                 self.screen.addstr(y, x, char_to_add, self.color)
-                self.recentlyadded.add((y, x))
+                self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
             pass  # TODO: Error system
 
@@ -122,7 +124,6 @@ class Drawing:
         if self.modify:
             if self.draw:
                 self.draw_brush(y, x)
-                # self.add_char(y, x)
             if self.erase:
                 self.add_char(y, x, char_to_add=" ")
         if button & curses.BUTTON1_PRESSED:
@@ -168,12 +169,18 @@ class Drawing:
         brush_lines = self.brush_shape.split("\n")
         brush_height = len(brush_lines)
         brush_width = len(max(brush_lines, key=len))
+        draw_char = self.char
+        if self.curve_mode:
+            self.curve_detector((y, x))
+            draw_char = self.curve_detector.get_char()
+
         for cy, line in enumerate(brush_lines):
             for cx, char in enumerate(line):
                 if char == "*":
                     self.add_char(
                         y - round(brush_height / 2) + cy,
                         x - round(brush_width / 2) + cx,
+                        char_to_add=draw_char,
                     )
 
     def toggle_draw(self):
@@ -195,6 +202,11 @@ class Drawing:
             self.draw = False
             self.erase = False
             self.fill = False
+
+    def toggle_curve_mode(self):
+        self.curve_mode = not self.curve_mode
+        if self.curve_mode:
+            self.curve_detector = curve_detection.Curve()
 
     def change_char(self):
         win = ui.window.Window(self.screen, margins=(40, 15))
@@ -604,6 +616,7 @@ class Drawing:
             93: self.increase_size,  # on ']' pressed
             98: self.select_brush,
             107: self.settings,
+            67: self.toggle_curve_mode,
         }
 
         if not self.playing:
@@ -611,6 +624,7 @@ class Drawing:
             try:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
+                print(key)
                 pass
 
     def display_top(self):
