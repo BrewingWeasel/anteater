@@ -3,6 +3,8 @@ import os
 import sys
 import curses
 import time
+import traceback
+import logging
 import pickle
 import ui.window
 import ui.color_picker
@@ -110,7 +112,7 @@ class Drawing:
                 self.screen.addstr(y, x, char_to_add, self.color)
                 self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
-            pass  # TODO: Error system
+            logging.warn(f"Attempting to draw character outside of bounds at y: {y} x: {x}")
 
     def unmodify(self):
         self.modify = False
@@ -235,7 +237,6 @@ class Drawing:
                         pass
                 self.times_modified -= 1
         except IndexError:
-            # TODO: error system
             pass
 
     def redo(self):
@@ -251,7 +252,7 @@ class Drawing:
                         pass
                 self.times_modified += 1
         except IndexError:
-            pass  # TODO: error system
+            pass
 
     def reset_colors(self):
         curses.init_pair(1, curses.COLOR_BLACK, -1)
@@ -656,6 +657,7 @@ class Drawing:
 
 def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
+    logging.basicConfig(filename='anteater.log', encoding='utf-8', level=logging.DEBUG)
 
     project = ui.start_window.start_window(stdscr)
 
@@ -684,8 +686,14 @@ def main(stdscr):
     drawing.show_help()
 
     while drawing.running:
-        drawing.display_top()
-        drawing.get_keys()
+        try:
+            drawing.display_top()
+            drawing.get_keys()
+        except KeyboardInterrupt:
+            break # Instead of the ugly error message 
+        except Exception as e:
+            logging.error(traceback.format_exc()) 
+            
 
 
 curses.wrapper(main)
