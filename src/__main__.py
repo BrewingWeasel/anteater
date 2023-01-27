@@ -648,7 +648,7 @@ class Drawing:
         ]
 
         cur_width = 0
-        for i, opt in enumerate(OPTIONS):
+        for opt in OPTIONS:
             display, color = opt
             self.screen.addstr(0, cur_width, display, color)
             cur_width += len(display)

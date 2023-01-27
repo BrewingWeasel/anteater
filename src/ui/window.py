@@ -1,7 +1,5 @@
 import curses
 import ui.widgets as widgets
-import time
-
 
 class Window:
     def __init__(self, screen, margins=(4, 4), size=(3, 20)):
@@ -13,7 +11,7 @@ class Window:
             self.ymargin = round((curses.LINES - size[1]) / 2)
         self.widgets = []
         self.cur_widget = 0
-        curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_WHITE)
+        curses.init_pair(9, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     def gen_window(self):
         for y in range(self.ymargin, curses.LINES - self.ymargin):
@@ -21,14 +19,14 @@ class Window:
                 y,
                 self.xmargin,
                 " " * (curses.COLS - self.xmargin * 2),
-                curses.color_pair(1),
+                curses.color_pair(9),
             )
 
     def gen_title(self, title):
         xpos = round(curses.COLS / 2 - len(title) / 2)
         self.screen.addstr(
             self.ymargin, xpos, title, curses.color_pair(
-                1) | curses.A_UNDERLINE
+                9) | curses.A_UNDERLINE
         )
 
     def gen_text(self, text, ypos="center", xpos="center", style=curses.A_NORMAL):
@@ -42,7 +40,7 @@ class Window:
         else:
             xpos = self.xmargin + xpos
 
-        self.screen.addstr(ypos, xpos, text, curses.color_pair(1) | style)
+        self.screen.addstr(ypos, xpos, text, curses.color_pair(9) | style)
 
     def gen_widgets(self, widget_list, confirm=True, offset=2):
         for i, widget in enumerate(widget_list):

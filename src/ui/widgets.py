@@ -14,15 +14,15 @@ class Widget:
 
         self.active = False
         if fg == 0:
-            curses.init_pair(9, curses.COLOR_WHITE, curses.COLOR_BLACK)
+            curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_BLACK)
         else:
-            curses.init_pair(9 + fg, curses.pair_content(fg)
+            curses.init_pair(10 + fg, curses.pair_content(fg)
                              [0], curses.COLOR_WHITE)
         curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.draw()
 
     def draw(self):
-        color = 18 if self.active else 9 + self.fg
+        color = 18 if self.active else 10 + self.fg
         self.cur_showing = self.prompt + self.input_prompt + self.answer
         self.screen.addstr(self.y, self.x, self.cur_showing,
                            curses.color_pair(color))
@@ -66,7 +66,7 @@ class TextInput(Widget):
                 self.y,
                 self.x + len(self.cur_showing),
                 " ",
-                curses.color_pair(9 + self.fg),
+                curses.color_pair(10 + self.fg),
             )
         elif response == "\n":
             self.active = False
@@ -82,7 +82,7 @@ class NumberInput(TextInput):
         curses.init_pair(19, curses.COLOR_WHITE, curses.COLOR_RED)
 
     def draw(self):
-        color = 18 if self.active else 9 + self.fg
+        color = 18 if self.active else 10 + self.fg
         try:
             self.answer = int(self.answer)
         except ValueError:
@@ -148,7 +148,7 @@ class PreviewListItem(AcceptInput):
         return response
 
     def draw(self):
-        color = 18 if self.active else 9 + self.fg
+        color = 18 if self.active else 10 + self.fg
         lines = self.prompt.split("\n")
 
         temp_start = False
