@@ -349,10 +349,9 @@ class Drawing:
     def play(self):
         print("\n" * 200)
         self.cur_frame = 0
-        # Print each frame
         for frame in range(self.frames - 1):
             self.display_top()
-            time.sleep(1 / 6)
+            time.sleep(1 / self.fps)
             self.cur_frame += 1
             self.screen.clear()
             self.draw_frame()
@@ -624,7 +623,6 @@ class Drawing:
             try:
                 keybinds[key]()
             except KeyError:  # If they key pressed doesn't do anything ignore it
-                print(key)
                 pass
 
     def display_top(self):
