@@ -186,6 +186,12 @@ class Drawing:
                         x - round(brush_width / 2) + cx,
                         char_to_add=draw_char,
                     )
+                elif char != " ":
+                    self.add_char(
+                        y - round(brush_height / 2) + cy,
+                        x - round(brush_width / 2) + cx,
+                        char_to_add=char,
+                    )
 
     def toggle_draw(self):
         self.toggle_modify()
