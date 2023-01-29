@@ -4,6 +4,7 @@ import ui.options
 import math
 import os
 import curses
+import logging
 
 BRUSHES = os.listdir("brushes")
 BRUSHES_PER_ROW = 6
@@ -28,8 +29,13 @@ def get_brush(screen, char):
             for brush_num, brush in enumerate(BRUSHES):
                 if math.floor(brush_num / BRUSHES_PER_ROW) == cur_row:
                     with open(f"brushes/{brush}", "r") as f:
-                        brush_shape = f.read().split("#SIZE\n")[
-                            3].replace("*", char)
+                        shapes = f.read().split("#SIZE\n")
+                        if len(shapes) > 3:
+                            brush_shape = shapes[3].replace("*", char)
+                        else:
+                            brush_shape = shapes[-1].replace("*", char)
+                        
+
                         options.append(
                             ui.widgets.PreviewListItem(
                                 screen,
