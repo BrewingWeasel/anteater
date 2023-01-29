@@ -41,8 +41,11 @@ class Drawing:
         curses.flushinp()
         curses.noecho()
 
-        usrdir = os.path.expanduser("~")
-        self.save_path = os.path.join(usrdir, ".local", "share", "anteater")
+        self.usrdir = os.path.expanduser("~")
+        self.save_path = os.path.join(
+            self.usrdir, ".local", "share", "anteater")
+        self.brush_dir = os.path.join(
+            self.usrdir, ".config", "anteater", "brushes")
 
         self.frames = frames
         self.fps = fps
@@ -553,7 +556,7 @@ class Drawing:
         self.draw_frame()
 
     def get_cur_brush(self):
-        with open(f"brushes/{self.brush}") as f:
+        with open(f"{self.brush_dir}/{self.brush}") as f:
             brush_shapes = f.read().split("#SIZE\n")
             self.brush_size_max = len(brush_shapes)
             if self.brush_size >= len(brush_shapes) - 1:

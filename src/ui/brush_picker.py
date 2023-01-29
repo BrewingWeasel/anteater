@@ -6,7 +6,8 @@ import os
 import curses
 import logging
 
-BRUSHES = os.listdir("brushes")
+BRUSH_DIR = os.path.join(os.path.expanduser("~"), ".config/anteater/brushes")
+BRUSHES = os.listdir(BRUSH_DIR)
 BRUSHES_PER_ROW = 6
 
 
@@ -28,13 +29,12 @@ def get_brush(screen, char):
             options = []
             for brush_num, brush in enumerate(BRUSHES):
                 if math.floor(brush_num / BRUSHES_PER_ROW) == cur_row:
-                    with open(f"brushes/{brush}", "r") as f:
+                    with open(f"{BRUSH_DIR}/{brush}", "r") as f:
                         shapes = f.read().split("#SIZE\n")
                         if len(shapes) > 3:
                             brush_shape = shapes[3].replace("*", char)
                         else:
                             brush_shape = shapes[-1].replace("*", char)
-                        
 
                         options.append(
                             ui.widgets.PreviewListItem(
@@ -61,7 +61,7 @@ def get_brush(screen, char):
                 cur_row -= 1
                 cur_row_changed = True
         elif response == "down":
-            if cur_row < (len(BRUSHES) / BRUSHES_PER_ROW) - 1:  # Why -2?
+            if cur_row < (len(BRUSHES) / BRUSHES_PER_ROW) - 1:
                 cur_row += 1
                 cur_row_changed = True
                 if cur_widget + (cur_row * BRUSHES_PER_ROW) + cur_row > len(BRUSHES):
