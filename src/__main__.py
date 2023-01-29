@@ -6,6 +6,7 @@ import time
 import traceback
 import logging
 import pickle
+import setup
 import ui.window
 import ui.color_picker
 import ui.brush_picker
@@ -667,6 +668,7 @@ def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
     logging.basicConfig(filename="anteater.log",
                         encoding="utf-8", level=logging.DEBUG)
+    setup.main()
 
     project = ui.start_window.start_window(stdscr)
 
@@ -699,7 +701,7 @@ def main(stdscr):
             drawing.display_top()
             drawing.get_keys()
         except KeyboardInterrupt:
-            break # Instead of the ugly error message
+            break  # Instead of the ugly error message
         except Exception as e:
             logging.error(traceback.format_exc())
 
