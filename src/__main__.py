@@ -112,7 +112,9 @@ class Drawing:
                 self.screen.addstr(y, x, char_to_add, self.color)
                 self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
-            logging.warn(f"Attempting to draw character outside of bounds at y: {y} x: {x}")
+            logging.warning(
+                f"Attempting to draw character outside of bounds at y: {y} x: {x}"
+            )
 
     def unmodify(self):
         self.modify = False
@@ -657,7 +659,8 @@ class Drawing:
 
 def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
-    logging.basicConfig(filename='anteater.log', encoding='utf-8', level=logging.DEBUG)
+    logging.basicConfig(filename="anteater.log",
+                        encoding="utf-8", level=logging.DEBUG)
 
     project = ui.start_window.start_window(stdscr)
 
@@ -690,10 +693,9 @@ def main(stdscr):
             drawing.display_top()
             drawing.get_keys()
         except KeyboardInterrupt:
-            break # Instead of the ugly error message 
+            break # Instead of the ugly error message
         except Exception as e:
-            logging.error(traceback.format_exc()) 
-            
+            logging.error(traceback.format_exc())
 
 
 curses.wrapper(main)
