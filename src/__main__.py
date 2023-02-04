@@ -7,6 +7,7 @@ import traceback
 import logging
 import pickle
 import setup
+import export
 from setup import CONFIG_DIR, USER_DIR
 import ui.window
 import ui.color_picker
@@ -14,6 +15,7 @@ import ui.brush_picker
 import ui.confirmation
 import ui.start_window
 import ui.help_menu
+import ui.options
 import curve_detection
 
 
@@ -375,71 +377,21 @@ class Drawing:
         return f"\033[0;3{curses.pair_content(curses.pair_number(color))[0]}m\033[{y};{x}H{char}"
 
     def export(self):
-        win = ui.window.Window(self.screen)
-        win.gen_window()
-        win.gen_title("Export file")
-        win.gen_widgets(
-            [
-                (
-                    ui.widgets.TextInput,
-                    "File location",
-                    f"{self.export_file}",
-                ),
-                (
-                    ui.widgets.TextInput,
-                    "Loop (y/n)",
-                    "y",
-                ),
-            ]
+        win = ui.window.make_adaptive_window(
+            self.screen,
+            title="Export file type",
+            widgets=[
+                (ui.widgets.ListItem, "Animation (python)", ""),
+                (ui.widgets.ListItem, "Brush", ""),
+            ],
+            confirm=False,
         )
-        self.export_file, loop, _ = win.get_contents()
-        loop = loop.strip().lower().startswith("y")
-        prefix = "\t" if loop else ""
-        with open(self.export_file, "w") as f:
-            f.write("import time\nprint('\\n' * 100)\n")
-            self.cur_frame = 0
-
-            # Handle the first frame outside of loop so that looping works
-            f.write("# frame 0\n")
-            f.write(f"time.sleep({1 / self.fps})\n")
-            for coords, char_info in self.get_differences():
-                y, x = coords
-                new_char, new_char_color = char_info
-                f.write(
-                    f"print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
-                )
-            self.cur_frame += 1
-
-            if loop:
-                f.write("while True:\n")
-            for frame in range(1, self.frames):
-                f.write(f"{prefix}# frame {frame}\n")
-                f.write(f"{prefix}time.sleep({1 / self.fps})\n")
-                for coords, char_info in self.get_differences():
-                    y, x = coords
-                    new_char, new_char_color = char_info
-                    f.write(
-                        f"{prefix}print('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
-                    )
-                self.screen.clear()
-                self.draw_frame()
-                self.screen.refresh()
-                self.cur_frame += 1
-
-            if loop:
-                f.write("# frame 0\n")
-                f.write(f"\ttime.sleep({1 / self.fps})\n")
-                self.cur_frame = 0
-                for coords, char_info in self.get_differences(
-                    otherframe=self.frames - 1
-                ):
-                    y, x = coords
-                    new_char, new_char_color = char_info
-                    f.write(
-                        f"\tprint('{self.get_ansi_code_string(new_char_color, new_char, y, x)}')\n"
-                    )
-
+        response = ui.options.get_option(win)
         win.delete()
+        if response == 1:
+            export.export_brush(self, self.export_file)
+        elif response == 0:
+            export.export_animation(self)
         self.draw_frame()
 
     def save(self):
@@ -702,7 +654,7 @@ def main(stdscr):
             project_name=name, frames=int(frames), fps=int(fps)
         )
         if project_type == "brush":
-            drawing.save_path = f"{CONFIG_DIR}/brushes/{drawing.project_name}"
+            drawing.export_file = f"{CONFIG_DIR}brushes/{drawing.project_name}"
             drawing.char = "*"
 
     else:

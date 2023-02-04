@@ -120,7 +120,7 @@ def make_adaptive_window(
     miny = 1 if title == "" else 2
     miny += len(widgets) + len(text)
     win = Window(screen, size=(minx + widgxmargin *
-                 2 + requiredx, miny + widgymargin))
+                 2 + requiredx + 2, miny + widgymargin))
     win.gen_window()
     win.gen_title(title)
     win.gen_widgets(widgets, confirm=confirm)
