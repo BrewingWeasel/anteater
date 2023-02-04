@@ -54,6 +54,35 @@ class Widget:
                 return response
 
 
+class MultipleChoiceInline(Widget):
+    def __init__(self, screen, y, x, prompt, options, input_prompt=": ", fg=1):
+        self.selected = 0
+        self.options = options
+        super().__init__(screen, y, x, prompt, input_prompt, fg)
+
+    def draw(self):
+        self.answer = self.options[self.selected]
+        color = 18 if self.active else 10 + self.fg
+        self.screen.addstr(self.y, self.x, self.prompt + " ", 14)
+        for i, option in enumerate(self.options):
+            color = 18 if self.selected == i else 10 + self.fg
+            self.screen.addstr(option + " ", curses.color_pair(color))
+
+    def _input_response(self):
+        response = super()._input_response()
+        if response == "KEY_RIGHT":
+            if self.selected < len(self.options) - 1:
+                self.selected += 1
+                self.draw()
+                return "right"
+        if response == "KEY_LEFT":
+            if self.selected > 0:
+                self.selected -= 1
+                self.draw()
+                return "left"
+        return response
+
+
 class TextInput(Widget):
     def _input_response(self):
         response = super()._input_response()
@@ -119,14 +148,13 @@ class AcceptInput(Widget):
 class ListItem(AcceptInput):
     def __init__(self, screen, y, x, prompt, fg=1):
         super().__init__(screen, y, x, prompt, fg=fg)
-        self.possible_inputs = self.possible_inputs + [i for i in range(0, 10)]
+        self.possible_inputs = self.possible_inputs + list(range(0, 10))
 
     def _input_response(self):
         response = super()._input_response()
         if response.isnumeric():
             return int(response)
-        else:
-            return response
+        return response
 
 
 class PreviewListItem(AcceptInput):
@@ -141,7 +169,7 @@ class PreviewListItem(AcceptInput):
             self.active = False
             self.draw()
             return "left"
-        elif response == "KEY_RIGHT":
+        if response == "KEY_RIGHT":
             self.active = False
             self.draw()
             return "right"

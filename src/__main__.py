@@ -7,6 +7,7 @@ import traceback
 import logging
 import pickle
 import setup
+from setup import CONFIG_DIR, USER_DIR
 import ui.window
 import ui.color_picker
 import ui.brush_picker
@@ -598,7 +599,6 @@ class Drawing:
         self.draw_frame()
 
     def get_keys(self):
-
         keybinds = {
             curses.KEY_MOUSE: self.react_to_mouse,  # On mouse movement
             100: self.toggle_draw,  # On 'd' pressed
@@ -635,7 +635,7 @@ class Drawing:
             key = self.screen.getch()
             try:
                 keybinds[key]()
-            except KeyError:  # If they key pressed doesn't do anything ignore it
+            except KeyError:  # If the key pressed doesn't do anything ignore it
                 pass
 
     def display_top(self):
@@ -680,18 +680,30 @@ def main(stdscr):
 
         win.gen_window()
         win.gen_title("new animation")
+        win.widgets.append(
+            ui.widgets.MultipleChoiceInline(
+                win.screen,
+                win.ymargin + 2,
+                win.xmargin + 5,
+                "Project type: ",
+                ["drawing", "animation", "brush"],
+            )
+        )
         win.gen_widgets(
             [
                 (ui.widgets.TextInput, "file name", "animation"),
                 (ui.widgets.NumberInput, "total frames", "24"),
                 (ui.widgets.NumberInput, "frames per second", "12"),
-            ]
+            ], offset=3
         )
-        file_info = win.get_contents()
+        project_type, name, frames, fps, _ = win.get_contents()
 
         drawing = Drawing(
-            project_name=file_info[0], frames=int(file_info[1]), fps=int(file_info[2])
+            project_name=name, frames=int(frames), fps=int(fps)
         )
+        if project_type == "brush":
+            drawing.save_path = f"{CONFIG_DIR}/brushes/{drawing.project_name}"
+            drawing.char = "*"
 
     else:
         drawing = Drawing()

@@ -16,11 +16,11 @@ def start_window(screen):
 
     max_size = len(TITLE)
     for i in widgets:
-        maxSize = max(len(i[1]), max_size)
+        max_size = max(len(i[1]), max_size)
 
     win = ui.window.Window(
         screen,
-        size=(maxSize + 5, len(widgets) + 5),
+        size=(max_size + 5, len(widgets) + 5),
     )
     win.gen_window()
     win.gen_title(TITLE)
