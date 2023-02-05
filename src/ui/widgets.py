@@ -63,7 +63,7 @@ class MultipleChoiceInline(Widget):
     def draw(self):
         self.answer = self.options[self.selected]
         color = 18 if self.active else 10 + self.fg
-        self.screen.addstr(self.y, self.x, self.prompt + " ", 14)
+        self.screen.addstr(self.y, self.x, self.prompt + " ", curses.color_pair(9))
         for i, option in enumerate(self.options):
             color = 18 if self.selected == i else 10 + self.fg
             self.screen.addstr(option + " ", curses.color_pair(color))
