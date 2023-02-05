@@ -119,9 +119,7 @@ class Drawing:
                 self.screen.addstr(y, x, char_to_add, self.color)
                 self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
-            logging.warning(
-                f"Attempting to draw character outside of bounds at y: {y} x: {x}"
-            )
+            pass
 
     def unmodify(self):
         self.modify = False
@@ -656,6 +654,9 @@ def main(stdscr):
         if project_type == "brush":
             drawing.export_file = f"{CONFIG_DIR}brushes/{drawing.project_name}"
             drawing.char = "*"
+        if project_type == "drawing":
+            drawing.frames = 1
+            drawing.fps = 1
 
     else:
         drawing = Drawing()
