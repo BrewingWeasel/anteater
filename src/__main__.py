@@ -44,11 +44,10 @@ class Drawing:
         curses.flushinp()
         curses.noecho()
 
-        self.usrdir = os.path.expanduser("~")
         self.save_path = os.path.join(
-            self.usrdir, ".local", "share", "anteater")
+            USER_DIR, ".local", "share", "anteater")
         self.brush_dir = os.path.join(
-            self.usrdir, ".config", "anteater", "brushes")
+            CONFIG_DIR, "brushes")
 
         self.frames = frames
         self.fps = fps
