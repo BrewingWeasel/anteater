@@ -109,13 +109,16 @@ class Drawing:
             )
         self.recentlyadded = set()
 
-    def add_char(self, y, x, char_to_add="cur_char"):
-        if char_to_add == "cur_char":
+    def add_char(self, y, x, char_to_add=None, color=None):
+        # TODO: Check and see what an actually pythonic way of doing this is :)
+        if char_to_add is None:
             char_to_add = self.char
+        if color is None:
+            color = self.color
         self.modifying_char = char_to_add
         try:
             if y > 0 and self.in_selection(y, x):
-                self.screen.addstr(y, x, char_to_add, self.color)
+                self.screen.addstr(y, x, char_to_add, color)
                 self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
             pass
@@ -178,7 +181,11 @@ class Drawing:
         brush_height = len(brush_lines)
         brush_width = len(max(brush_lines, key=len))
         draw_char = self.char
-        if self.curve_mode:
+        draw_color = self.color
+        if self.erase:
+            draw_char = " "
+            draw_color = curses.COLOR_WHITE
+        elif self.curve_mode:
             self.curve_detector((y, x))
             draw_char = self.curve_detector.get_char()
 
@@ -189,12 +196,14 @@ class Drawing:
                         y - round(brush_height / 2) + cy,
                         x - round(brush_width / 2) + cx,
                         char_to_add=draw_char,
+                        color=draw_color
                     )
                 elif char != " ":
                     self.add_char(
                         y - round(brush_height / 2) + cy,
                         x - round(brush_width / 2) + cx,
                         char_to_add=char,
+                        color=draw_color
                     )
 
     def toggle_draw(self):
