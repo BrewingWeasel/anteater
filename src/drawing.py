@@ -120,10 +120,7 @@ class Drawing:
                 self.draw_fill(y, x)
         elif button & curses.BUTTON1_CLICKED:
             if not self.modify:
-                if self.draw:
-                    self.draw_brush(y, x)
-                if self.erase:
-                    self.add_char(y, x, char_to_add=" ")
+                self.draw_brush(y, x)
             self.unmodify()
         elif button & curses.BUTTON1_RELEASED:
             self.unmodify()
