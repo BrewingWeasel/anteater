@@ -575,14 +575,12 @@ class Drawing:
             121: self.copy,  # On 'y' pressed
             112: self.paste,  # On 'p' pressed
             1: self.select_all,  # On Ctrl + 'a' pressed
-            104: self.show_help,
-            123: self.decrease_size,
-            91: self.decrease_size,  # on '[' pressed
-            125: self.increase_size,
-            93: self.increase_size,  # on ']' pressed
-            98: self.select_brush,
-            107: self.settings,
-            67: self.toggle_curve_mode,
+            104: self.show_help,  # On 'h' pressed
+            91: self.decrease_size,  # On '[' pressed
+            93: self.increase_size,  # On ']' pressed
+            98: self.select_brush,  # On 'b' pressed
+            107: self.settings,  # On 'k' pressed
+            67: self.toggle_curve_mode,  # On 'C' pressed
         }
 
         if not self.playing:
