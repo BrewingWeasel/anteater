@@ -19,26 +19,7 @@ class Drawing:
     def __init__(self, frames=12, fps=12, project_name="animation"):
         # Initialize curses screen
         self.screen = curses.initscr()
-
-        # Set up colors
-        curses.start_color()
-        curses.use_default_colors()
-        for i in range(0, curses.COLORS):
-            curses.init_pair(i + 1, i, -1)
-
-        curses.init_pair(25, 7, 2)
-        curses.init_pair(26, 7, 4)
-        curses.init_pair(27, 2, 4)
-        curses.init_pair(28, 4, 2)
-        curses.init_pair(29, 7, 5)
-        curses.init_pair(30, 5, 2)
-
         self.screen.keypad(1)
-        curses.curs_set(0)
-        curses.mousemask(curses.ALL_MOUSE_EVENTS |
-                         curses.REPORT_MOUSE_POSITION)
-        curses.flushinp()
-        curses.noecho()
 
         self.save_path = os.path.join(
             USER_DIR, ".local", "share", "anteater")
