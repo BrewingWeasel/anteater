@@ -110,10 +110,7 @@ class Drawing:
     def react_to_mouse(self):
         _, x, y, _, button = curses.getmouse()
         if self.modify:
-            if self.draw:
-                self.draw_brush(y, x)
-            if self.erase:
-                self.add_char(y, x, char_to_add=" ")
+            self.draw_brush(y, x)
         if button & curses.BUTTON1_PRESSED:
             self.modify = True
             if self.fill:
