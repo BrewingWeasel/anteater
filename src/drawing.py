@@ -1,5 +1,6 @@
 import os
 import curses
+import time
 from setup import CONFIG_DIR, USER_DIR
 import ui.window
 import ui.color_picker
@@ -9,6 +10,7 @@ import ui.start_window
 import ui.help_menu
 import ui.options
 import curve_detection
+
 
 class Drawing:
     def __init__(self, frames=12, fps=12, project_name="animation"):
