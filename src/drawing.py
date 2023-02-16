@@ -2,6 +2,7 @@ import os
 import curses
 import time
 from setup import CONFIG_DIR, USER_DIR
+import ui.widgets
 import ui.window
 import ui.color_picker
 import ui.brush_picker
@@ -10,6 +11,8 @@ import ui.start_window
 import ui.help_menu
 import ui.options
 import curve_detection
+import export
+import pickle
 
 
 class Drawing:
