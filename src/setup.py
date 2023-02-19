@@ -37,6 +37,7 @@ def curses_settings():
 def main():
     make_brushes()
     curses_settings()
+    print("\033[?1000h\033[?1002h\033[?1003h")  # Enable mouse tracking
     # TODO Add more setup and config options
 
 

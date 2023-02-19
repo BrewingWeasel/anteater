@@ -27,9 +27,6 @@ Anteater is a tool for creating drawings and animations in the terminal. Anteate
 - Configurable keyboard shortcuts
 - Easier way of creating your own brushes
 
-# Running:
-Note that in order to use Anteater, it is *highly* recommended to set your "term" environment variable to xterm-1003. For example, ```export TERM=xterm-1003```. This allows your mouse movement to update real time, making the drawing experience much better. (This could also be done by making an alias for this program.)
-
 
 # Current Keybinds:
 (Note that these may change at any point)

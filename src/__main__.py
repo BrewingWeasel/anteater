@@ -1,4 +1,3 @@
-# USE export TERM=xterm-1003
 import os
 import sys
 import curses
