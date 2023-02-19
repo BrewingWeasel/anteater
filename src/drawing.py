@@ -199,7 +199,6 @@ class Drawing:
     def toggle_line_mode(self):
         self.toggle_modify()
         self.line_mode = True
-        print("thiis is insaneenakl")
 
     def toggle_modify(self):
         if self.modify:
