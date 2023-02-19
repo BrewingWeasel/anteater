@@ -312,7 +312,6 @@ class Drawing:
             return
         difs = (y - self.line_start[0], x - self.line_start[1])
         length = round(math.sqrt(abs(difs[0])**2 + abs(difs[1])**2))
-        print(length)
         difs = (difs[0] / length, difs[1] / length)
         for i in range(length):
             self.add_char(
