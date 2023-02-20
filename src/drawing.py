@@ -599,9 +599,11 @@ class Drawing:
             mode = "erase"
         elif self.draw:
             mode = "draw"
+        elif self.line_mode:
+            mode = "line"
         elif self.fill:
             mode = "fill"
-        if mode in ["erase", "draw"] and self.modify:
+        if mode in set(["erase", "draw", "line"]) and self.modify:
             mode += " (m)"
 
         # TODO: REWORK
