@@ -1,6 +1,7 @@
 import os
 import curses
 import time
+import math
 from setup import CONFIG_DIR, USER_DIR
 import ui.widgets
 import ui.window
@@ -34,15 +35,19 @@ class Drawing:
         self.cur_frame = 0
         self.playing = False
         self.running = True
+
+        self.line_mode = False
         self.draw = True
         self.erase = False
         self.fill = False
         self.modify = False
+
         self.selecting = False
         self.init_coords = None
         self.final_coords = None
         self.times_modified = 0
         self.buffer = []
+        self.line_start = (-1, -1)
 
         self.brush_size = 0
         self.brush = "default"
@@ -107,10 +112,16 @@ class Drawing:
         self.history.append([])
         self.draw_selection()
 
-    def react_to_mouse(self):
+    def react_to_mouse(self):  # TODO: redo this whole function
         _, x, y, _, button = curses.getmouse()
-        if self.modify:
+        if self.line_mode:
+            if button & curses.BUTTON1_PRESSED:
+                self.draw_line(y, x)
+            return
+        if self.modify and curses.BUTTON1_PRESSED:
             self.draw_brush(y, x)
+        # TODO: why are these all using bitwise operators?????
+        # (just switching to and breaks it)
         if button & curses.BUTTON1_PRESSED:
             self.modify = True
             if self.fill:
@@ -189,6 +200,11 @@ class Drawing:
         self.toggle_modify()
         self.fill = True
 
+    def toggle_line_mode(self):
+        self.toggle_modify()
+        self.line_mode = True
+        self.line_start = (-1, -1)
+
     def toggle_modify(self):
         if self.modify:
             self.unmodify()
@@ -196,6 +212,7 @@ class Drawing:
             self.draw = False
             self.erase = False
             self.fill = False
+            self.line_mode = False
 
     def toggle_curve_mode(self):
         self.curve_mode = not self.curve_mode
@@ -293,6 +310,21 @@ class Drawing:
         replace = (self.char, self.color)
         self._fill(y, x, original, replace)
         self.checked = []
+
+    def draw_line(self, y, x):
+        if self.line_start == (-1, -1):
+            self.add_char(y, x)
+            self.line_start = (y, x)
+            return
+        difs = (y - self.line_start[0], x - self.line_start[1])
+        length = round(math.sqrt(abs(difs[0])**2 + abs(difs[1])**2))
+        difs = (difs[0] / length, difs[1] / length)
+        for i in range(length):
+            self.add_char(
+                round(self.line_start[0] + difs[0] * i),
+                round(self.line_start[1] + difs[1] * i))
+        self.line_start = (-1, -1)
+        self.unmodify()
 
     def draw_frame(self):
         for y, yval in enumerate(self.charlocations[self.cur_frame]):
@@ -533,6 +565,7 @@ class Drawing:
             100: self.toggle_draw,  # On 'd' pressed
             101: self.toggle_erase,  # On 'e' pressed
             114: self.toggle_modify,  # On 'r' pressed
+            76: self.toggle_line_mode,  # On 'L' pressed
             99: self.change_char,  # On 'c' pressed
             122: self.undo,  # On 'z' pressed
             90: self.redo,  # On 'Z' pressed
@@ -571,9 +604,11 @@ class Drawing:
             mode = "erase"
         elif self.draw:
             mode = "draw"
+        elif self.line_mode:
+            mode = "line"
         elif self.fill:
             mode = "fill"
-        if mode in ["erase", "draw"] and self.modify:
+        if mode in set(["erase", "draw", "line"]) and self.modify:
             mode += " (m)"
 
         # TODO: REWORK
