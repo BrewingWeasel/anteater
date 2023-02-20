@@ -199,6 +199,7 @@ class Drawing:
     def toggle_line_mode(self):
         self.toggle_modify()
         self.line_mode = True
+        self.line_start = (-1, -1)
 
     def toggle_modify(self):
         if self.modify:
@@ -317,8 +318,8 @@ class Drawing:
             self.add_char(
                 round(self.line_start[0] + difs[0] * i),
                 round(self.line_start[1] + difs[1] * i))
-        self.unmodify()
         self.line_start = (-1, -1)
+        self.unmodify()
 
     def draw_frame(self):
         for y, yval in enumerate(self.charlocations[self.cur_frame]):
