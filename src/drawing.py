@@ -112,12 +112,16 @@ class Drawing:
         self.history.append([])
         self.draw_selection()
 
-    def react_to_mouse(self):  # TODO: redo this function
+    def react_to_mouse(self):  # TODO: redo this whole function
         _, x, y, _, button = curses.getmouse()
-        if self.line_mode and curses.BUTTON1_PRESSED:
-            self.draw_line(y, x)
-        elif self.modify:
+        if self.line_mode:
+            if button & curses.BUTTON1_PRESSED:
+                self.draw_line(y, x)
+            return
+        if self.modify and curses.BUTTON1_PRESSED:
             self.draw_brush(y, x)
+        # TODO: why are these all using bitwise operators?????
+        # (just switching to and breaks it)
         if button & curses.BUTTON1_PRESSED:
             self.modify = True
             if self.fill:
@@ -309,6 +313,7 @@ class Drawing:
 
     def draw_line(self, y, x):
         if self.line_start == (-1, -1):
+            self.add_char(y, x)
             self.line_start = (y, x)
             return
         difs = (y - self.line_start[0], x - self.line_start[1])
