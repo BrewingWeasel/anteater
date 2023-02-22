@@ -73,7 +73,7 @@ class Drawing:
 
     def in_selection(self, y, x):
         if self.final_coords is None:
-            return True
+            return 0 < y < curses.LINES and 0 < x < curses.COLS
         elif (
             self.final_coords[0] > y >= self.init_coords[0]
             and self.final_coords[1] >= x >= self.init_coords[1]
@@ -99,7 +99,7 @@ class Drawing:
             color = self.color
         self.modifying_char = char_to_add
         try:
-            if y > 0 and self.in_selection(y, x):
+            if self.in_selection(y, x):
                 self.screen.addstr(y, x, char_to_add, color)
                 self.recentlyadded.add((y, x, char_to_add))
         except curses.error:
@@ -310,6 +310,7 @@ class Drawing:
         replace = (self.char, self.color)
         self._fill(y, x, original, replace)
         self.checked = []
+        self.toggle_draw()
 
     def draw_line(self, y, x):
         if self.line_start == (-1, -1):
