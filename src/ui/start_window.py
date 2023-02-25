@@ -25,8 +25,7 @@ def start_window(screen):
     win.gen_window()
     win.gen_title(TITLE)
     win.widgets.append(
-        ui.widgets.ListItem(screen, win.ymargin + 2,
-                            win.xmargin + 4, "New project")
+        ui.widgets.ListItem(screen, win.ymargin + 2, win.xmargin + 4, "New project")
     )
 
     # Use for project text (TODO does this actually look better/more readable?)

@@ -13,8 +13,7 @@ BRUSHES_PER_ROW = 6
 
 def get_brush(screen, char):
     size = (144, 15)
-    margins = (round((curses.COLS - size[0]) / 2),
-               round((curses.LINES - size[1]) / 2))
+    margins = (round((curses.COLS - size[0]) / 2), round((curses.LINES - size[1]) / 2))
     win = ui.window.Window(screen, size=size)
     win.gen_window()
     win.gen_title("Choose a brush")
@@ -40,8 +39,7 @@ def get_brush(screen, char):
                             ui.widgets.PreviewListItem(
                                 screen,
                                 20,
-                                margins[0] + 5 + (brush_num %
-                                                  BRUSHES_PER_ROW) * 24,
+                                margins[0] + 5 + (brush_num % BRUSHES_PER_ROW) * 24,
                                 brush_shape,
                                 brush,
                             )

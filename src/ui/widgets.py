@@ -16,16 +16,14 @@ class Widget:
         if fg == 0:
             curses.init_pair(10, curses.COLOR_WHITE, curses.COLOR_BLACK)
         else:
-            curses.init_pair(10 + fg, curses.pair_content(fg)
-                             [0], curses.COLOR_WHITE)
+            curses.init_pair(10 + fg, curses.pair_content(fg)[0], curses.COLOR_WHITE)
         curses.init_pair(18, curses.COLOR_WHITE, curses.COLOR_BLUE)
         self.draw()
 
     def draw(self):
         color = 18 if self.active else 10 + self.fg
         self.cur_showing = self.prompt + self.input_prompt + self.answer
-        self.screen.addstr(self.y, self.x, self.cur_showing,
-                           curses.color_pair(color))
+        self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
 
     def switch_selected(self):
         self.active = False
@@ -117,8 +115,7 @@ class NumberInput(TextInput):
         except ValueError:
             color = 19
         self.cur_showing = self.prompt + self.input_prompt + str(self.answer)
-        self.screen.addstr(self.y, self.x, self.cur_showing,
-                           curses.color_pair(color))
+        self.screen.addstr(self.y, self.x, self.cur_showing, curses.color_pair(color))
 
     def _input_response(self):
         self.answer = str(self.answer)

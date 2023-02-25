@@ -17,8 +17,7 @@ from drawing import Drawing
 
 def main(stdscr):
     sys.setrecursionlimit(10000)  # Used for fill
-    logging.basicConfig(filename="anteater.log",
-                        encoding="utf-8", level=logging.DEBUG)
+    logging.basicConfig(filename="anteater.log", encoding="utf-8", level=logging.DEBUG)
     setup.main()
 
     project = ui.start_window.start_window(stdscr)
@@ -42,13 +41,12 @@ def main(stdscr):
                 (ui.widgets.TextInput, "file name", "animation"),
                 (ui.widgets.NumberInput, "total frames", "24"),
                 (ui.widgets.NumberInput, "frames per second", "12"),
-            ], offset=3
+            ],
+            offset=3,
         )
         project_type, name, frames, fps, _ = win.get_contents()
 
-        drawing = Drawing(
-            project_name=name, frames=int(frames), fps=int(fps)
-        )
+        drawing = Drawing(project_name=name, frames=int(frames), fps=int(fps))
         if project_type == "brush":
             drawing.export_file = f"{CONFIG_DIR}brushes/{drawing.project_name}"
             drawing.char = "*"

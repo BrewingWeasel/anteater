@@ -28,8 +28,7 @@ def curses_settings():
     curses.init_pair(30, 5, 2)
 
     curses.curs_set(0)
-    curses.mousemask(curses.ALL_MOUSE_EVENTS |
-                     curses.REPORT_MOUSE_POSITION)
+    curses.mousemask(curses.ALL_MOUSE_EVENTS | curses.REPORT_MOUSE_POSITION)
     curses.flushinp()
     curses.noecho()
 

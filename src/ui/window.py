@@ -1,6 +1,7 @@
 import curses
 import ui.widgets as widgets
 
+
 class Window:
     def __init__(self, screen, margins=(4, 4), size=(3, 20)):
         self.screen = screen
@@ -25,8 +26,7 @@ class Window:
     def gen_title(self, title):
         xpos = round(curses.COLS / 2 - len(title) / 2)
         self.screen.addstr(
-            self.ymargin, xpos, title, curses.color_pair(
-                9) | curses.A_UNDERLINE
+            self.ymargin, xpos, title, curses.color_pair(9) | curses.A_UNDERLINE
         )
 
     def gen_text(self, text, ypos="center", xpos="center", style=curses.A_NORMAL):
@@ -97,8 +97,7 @@ class Window:
 
     def delete(self):
         for y in range(self.ymargin, curses.LINES - self.ymargin):
-            self.screen.addstr(y, self.xmargin, " " *
-                               (curses.COLS - self.xmargin * 2))
+            self.screen.addstr(y, self.xmargin, " " * (curses.COLS - self.xmargin * 2))
 
 
 def make_adaptive_window(
@@ -119,8 +118,9 @@ def make_adaptive_window(
 
     miny = 1 if title == "" else 2
     miny += len(widgets) + len(text)
-    win = Window(screen, size=(minx + widgxmargin *
-                 2 + requiredx + 2, miny + widgymargin))
+    win = Window(
+        screen, size=(minx + widgxmargin * 2 + requiredx + 2, miny + widgymargin)
+    )
     win.gen_window()
     win.gen_title(title)
     win.gen_widgets(widgets, confirm=confirm)

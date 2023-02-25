@@ -1,4 +1,6 @@
 import ui.window
+
+
 def export_brush(drawing, file: str):
     with open(file, "w") as f:
         for brush_size in drawing.charlocations:
@@ -31,10 +33,10 @@ def export_brush(drawing, file: str):
                 if end_height_margin + 1 == y and empty_row:
                     end_height_margin = y
 
-            for line in text[start_height+1:-end_height_margin-1]:
+            for line in text[start_height + 1 : -end_height_margin - 1]:
                 f.write(line[start_width:-end_width_margin] + "\n")
 
-            if text[start_height+1:-end_height_margin-1] != []:
+            if text[start_height + 1 : -end_height_margin - 1] != []:
                 f.write("#SIZE\n")
 
 

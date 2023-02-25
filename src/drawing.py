@@ -22,10 +22,8 @@ class Drawing:
         self.screen = curses.initscr()
         self.screen.keypad(1)
 
-        self.save_path = os.path.join(
-            USER_DIR, ".local", "share", "anteater")
-        self.brush_dir = os.path.join(
-            CONFIG_DIR, "brushes")
+        self.save_path = os.path.join(USER_DIR, ".local", "share", "anteater")
+        self.brush_dir = os.path.join(CONFIG_DIR, "brushes")
 
         self.frames = frames
         self.fps = fps
@@ -178,14 +176,14 @@ class Drawing:
                         y - round(brush_height / 2) + cy,
                         x - round(brush_width / 2) + cx,
                         char_to_add=draw_char,
-                        color=draw_color
+                        color=draw_color,
                     )
                 elif char != " ":
                     self.add_char(
                         y - round(brush_height / 2) + cy,
                         x - round(brush_width / 2) + cx,
                         char_to_add=char,
-                        color=draw_color
+                        color=draw_color,
                     )
 
     def toggle_draw(self):
@@ -240,8 +238,7 @@ class Drawing:
                     y, x, oldchar, _newchar, oldcolor, _newcolor = i
                     try:
                         self.screen.addstr(y, x, oldchar, oldcolor)
-                        self.charlocations[self.cur_frame][y][x] = (
-                            oldchar, oldcolor)
+                        self.charlocations[self.cur_frame][y][x] = (oldchar, oldcolor)
                     except curses.error:
                         pass
                 self.times_modified -= 1
@@ -255,8 +252,7 @@ class Drawing:
                     y, x, _, newchar, _, newcolor = i
                     try:
                         self.screen.addstr(y, x, newchar, newcolor)
-                        self.charlocations[self.cur_frame][y][x] = (
-                            newchar, newcolor)
+                        self.charlocations[self.cur_frame][y][x] = (newchar, newcolor)
                     except curses.error:
                         pass
                 self.times_modified += 1
@@ -318,12 +314,13 @@ class Drawing:
             self.line_start = (y, x)
             return
         difs = (y - self.line_start[0], x - self.line_start[1])
-        length = round(math.sqrt(abs(difs[0])**2 + abs(difs[1])**2))
+        length = round(math.sqrt(abs(difs[0]) ** 2 + abs(difs[1]) ** 2))
         difs = (difs[0] / length, difs[1] / length)
         for i in range(length):
             self.add_char(
                 round(self.line_start[0] + difs[0] * i),
-                round(self.line_start[1] + difs[1] * i))
+                round(self.line_start[1] + difs[1] * i),
+            )
         self.line_start = (-1, -1)
         self.unmodify()
 
@@ -429,8 +426,7 @@ class Drawing:
             win = ui.window.Window(self.screen)
             win.gen_window()
             win.gen_title("Load file")
-            win.gen_widgets(
-                [(ui.widgets.TextInput, "File location", self.save_path)])
+            win.gen_widgets([(ui.widgets.TextInput, "File location", self.save_path)])
             location, _ = win.get_contents()
             win.delete()
         with open(location, "rb") as f:
@@ -502,8 +498,7 @@ class Drawing:
                                 yval[1],
                             )
                         )
-                        self.charlocations[self.cur_frame][ypos +
-                                                           y][xpos + x] = xval
+                        self.charlocations[self.cur_frame][ypos + y][xpos + x] = xval
                     except IndexError:
                         pass
             self.draw_frame()
